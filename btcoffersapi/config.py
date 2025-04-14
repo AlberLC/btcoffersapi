@@ -30,7 +30,8 @@ class Config(BaseSettings):
         'instant sepa': PaymentMethod.SEPA_INSTANT,
         'sepa': PaymentMethod.SEPA # check SEPA after Instant SEPA
     }
-    mongo_host: str | None = None
+    mongo_username: str | None = None
+    mongo_password: str | None = None
     robosats_coordinators_url: str = 'https://raw.githubusercontent.com/RoboSats/robosats/refs/heads/main/frontend/static/federation.json'
     robosats_payment_methods: dict[str, PaymentMethod] = {
         'Paypal Friends & Family': PaymentMethod.PAYPAL,
