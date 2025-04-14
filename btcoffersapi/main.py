@@ -20,4 +20,4 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(offers.router)
 
 if __name__ == '__main__':
-    uvicorn.run('main:app', host=config.api_host, port=config.api_port, reload=True)
+    uvicorn.run('main:app', host=config.api_host, port=config.api_port)
