@@ -7,12 +7,13 @@ from fastapi import FastAPI
 
 from api.routers import offers
 from config import config
+from services import offer_fetcher
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     database_lock = asyncio.Lock()
-    # asyncio.create_task(offer_fetcher.fetch_offers(database_lock))
+    asyncio.create_task(offer_fetcher.fetch_offers(database_lock))
     yield {'database_lock': database_lock, 'notification_tasks': defaultdict(lambda: None)}
 
 
