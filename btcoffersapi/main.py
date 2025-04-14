@@ -17,7 +17,7 @@ async def lifespan(_: FastAPI):
     yield {'database_lock': database_lock, 'notification_tasks': defaultdict(lambda: None)}
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, root_path='/btcoffersapi')
 app.include_router(offers.router)
 
 if __name__ == '__main__':
