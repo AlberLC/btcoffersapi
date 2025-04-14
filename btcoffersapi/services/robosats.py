@@ -38,12 +38,17 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) ->
                 if not payment_methods:
                     continue
 
+                if offer_data['amount']:
+                    amount = f"{float(offer_data['amount']):.2f}"
+                else:
+                    amount = f"{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}"
+
                 offers.append(
                     Offer(
                         id=str(offer_data['id']),
                         exchange=Exchange.ROBOSATS,
                         author=offer_data['maker_nick'],
-                        amount=f'{f'{float(offer_data['amount']):.2f}' if offer_data['amount'] else f'{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}'} €',
+                        amount=f"{amount} €",
                         price_eur=float(offer_data['price']),
                         price_usd=float(offer_data['price']) * eur_dolar_rate,
                         premium=float(offer_data['premium']),

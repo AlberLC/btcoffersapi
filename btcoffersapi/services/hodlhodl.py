@@ -25,12 +25,17 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, bt
         if not payment_methods:
             continue
 
+        if offer_data['min_amount'] == offer_data['max_amount']:
+            amount = offer_data['min_amount']
+        else:
+            amount = f"{offer_data['min_amount']} - {offer_data['max_amount']}"
+
         offers.append(
             Offer(
                 id=offer_data['id'],
                 exchange=Exchange.HODLHODL,
                 author=offer_data['trader']['login'],
-                amount=f'{offer_data['min_amount'] if offer_data['min_amount'] == offer_data['max_amount'] else f'{offer_data['min_amount']} - {offer_data['max_amount']}'} €',
+                amount=f'{amount} €',
                 price_eur=float(offer_data['price']),
                 price_usd=float(offer_data['price']) * eur_dolar_rate,
                 premium=(float(offer_data['price']) - btc_price) / btc_price * 100,

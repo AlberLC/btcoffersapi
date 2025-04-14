@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Any
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -16,7 +16,7 @@ class OffersParams(BaseModel):
     model_config = ConfigDict(extra='forbid', use_enum_values=True)
 
     @model_validator(mode='after')
-    def validate(self) -> Self:
+    def validate(self) -> Any:
         if len(
             [parameter for parameter in (self.max_price_eur, self.max_price_usd, self.max_premium) if parameter]
         ) > 1:

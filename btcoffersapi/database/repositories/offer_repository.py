@@ -6,7 +6,7 @@ from database.client import database
 from database.repositories.repository import Repository, maybe_lock
 
 
-class OfferRepository(Repository[Offer]):
+class OfferRepository(Repository):
     def __init__(self) -> None:
         super().__init__(database['offer'])
 
