@@ -13,5 +13,5 @@ def create_object_id(id: str) -> ObjectId:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f'{id} is not a valid ObjectId')
 
 
-client = AsyncIOMotorClient(host=config.mongo_host)
+client = AsyncIOMotorClient(username=config.mongo_username, password=config.mongo_password)
 database: AsyncIOMotorDatabase = client[config.database_name]
