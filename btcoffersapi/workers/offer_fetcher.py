@@ -2,16 +2,16 @@ import asyncio
 
 import aiohttp
 
-from config import config
-from database.repositories.offer_repository import OfferRepository
-from services import hodlhodl, lnp2pbot, robosats
+from btcoffersapi.config import config
+from btcoffersapi.database.repositories.offer_repository import OfferRepository
+from btcoffersapi.services import hodlhodl, lnp2pbot, robosats
+from btcoffersapi.database.locks import database_lock
 
 
-async def fetch_offers(database_lock: asyncio.Lock) -> None:
+async def fetch_offers() -> None:
     offer_repository = OfferRepository()
 
     while True:
-
         async with aiohttp.ClientSession() as session:
             async with session.get(config.yadio_api_endpoint) as response:
                 yadio_data = await response.json()
@@ -21,8 +21,11 @@ async def fetch_offers(database_lock: asyncio.Lock) -> None:
                 *await lnp2pbot.fetch_offers(yadio_data['EUR']['USD'], yadio_data['BTC']),
                 *await robosats.fetch_offers(session, yadio_data['EUR']['USD']),
             )
-            async with database_lock:
+            async with database_lock():
                 await offer_repository.delete_many({})
                 await offer_repository.insert_many(offers)
 
         await asyncio.sleep(config.fetch_offers_every.total_seconds())
+
+
+asyncio.run(fetch_offers())

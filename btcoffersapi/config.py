@@ -1,12 +1,16 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 import datetime
+from pathlib import Path
 
-from api.schemas.enums import PaymentMethod
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from btcoffersapi.api.schemas.enums import PaymentMethod
 
 
 class Config(BaseSettings):
     api_host: str | None = None
     api_port: int | None = None
+    database_lock_expiration: datetime.timedelta = datetime.timedelta(seconds=30)
+    database_lock_sleep: float = 0.5
     database_name: str = 'btcoffers'
     fetch_offers_every: datetime.timedelta = datetime.timedelta(minutes=1)
     hodlhodl_offers_endpoint: str = 'https://hodlhodl.com/api/v1/offers'
@@ -28,7 +32,7 @@ class Config(BaseSettings):
         'bizum': PaymentMethod.BIZUM,
         'sepa instant': PaymentMethod.SEPA_INSTANT,
         'instant sepa': PaymentMethod.SEPA_INSTANT,
-        'sepa': PaymentMethod.SEPA # check SEPA after Instant SEPA
+        'sepa': PaymentMethod.SEPA  # check SEPA after Instant SEPA
     }
     mongo_username: str | None = None
     mongo_password: str | None = None
@@ -45,7 +49,7 @@ class Config(BaseSettings):
     telegram_user_session: str | None = None
     yadio_api_endpoint: str = 'https://api.yadio.io/exrates/EUR'
 
-    model_config = SettingsConfigDict(env_file='../.env')
+    model_config = SettingsConfigDict(env_file=Path(__file__).resolve().parent.parent / '.env')
 
 
 config = Config()

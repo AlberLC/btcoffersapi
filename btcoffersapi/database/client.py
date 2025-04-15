@@ -3,7 +3,7 @@ from bson.errors import InvalidId
 from fastapi import HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
-from config import config
+from btcoffersapi.config import config
 
 
 def create_object_id(id: str) -> ObjectId:

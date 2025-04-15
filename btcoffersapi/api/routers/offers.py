@@ -1,12 +1,12 @@
 import asyncio
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 
-from api.schemas.offer import Offer
-from api.schemas.offers_params import OffersParams
-from database.repositories.offer_repository import OfferRepository
-from services import offer_notifier
+from btcoffersapi.api.schemas.offer import Offer
+from btcoffersapi.api.schemas.offers_params import OffersParams
+from btcoffersapi.database.repositories.offer_repository import OfferRepository
+from btcoffersapi.services import offer_notifier
 
 router = APIRouter(prefix='/offers', tags=['offers'])
 
@@ -37,7 +37,6 @@ async def websocket_endpoint(
 
 @router.get('')
 async def get_offers(
-    request: Request,
     offer_repository: Annotated[OfferRepository, Depends(OfferRepository)],
     offers_params: Annotated[OffersParams, Query()]
 ) -> list[Offer]:
@@ -46,18 +45,13 @@ async def get_offers(
         offers_params.max_price_usd,
         offers_params.max_premium,
         offers_params.payment_method,
-        offers_params.exchange,
-        request.state.database_lock
+        offers_params.exchange
     )
 
 
 @router.get('/{id}')
-async def get_offer(
-    request: Request,
-    id: str,
-    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]
-) -> Offer:
-    if offer := await offer_repository.get_by_id(id, request.state.database_lock):
+async def get_offer(id: str, offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]) -> Offer:
+    if offer := await offer_repository.get_by_id(id):
         return offer
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Offer not found')

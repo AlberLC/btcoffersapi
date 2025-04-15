@@ -1,7 +1,5 @@
-import asyncio
 import typing
-from collections.abc import AsyncIterator, Iterable
-from contextlib import asynccontextmanager
+from collections.abc import Iterable
 
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -10,16 +8,7 @@ from pydantic import BaseModel
 from database.client import create_object_id
 
 
-@asynccontextmanager
-async def maybe_lock(lock: asyncio.Lock | None) -> AsyncIterator[None]:
-    if lock:
-        async with lock:
-            yield
-    else:
-        yield
-
-
-class Repository[T: BaseModel]:
+class Repository:
     def __init__(self, collection: AsyncIOMotorCollection) -> None:
         self._collection = collection
         self._T = typing.get_args(self.__orig_bases__[0])[0]

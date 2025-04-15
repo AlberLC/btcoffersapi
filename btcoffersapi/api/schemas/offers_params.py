@@ -3,7 +3,7 @@ from typing import Self
 from fastapi import HTTPException, status
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from api.schemas.enums import Exchange, PaymentMethod
+from btcoffersapi.api.schemas.enums import Exchange, PaymentMethod
 
 
 class OffersParams(BaseModel):

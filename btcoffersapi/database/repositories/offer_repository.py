@@ -1,9 +1,8 @@
-import asyncio
-
-from api.schemas.enums import Exchange, PaymentMethod
-from api.schemas.offer import Offer
-from database.client import database
-from database.repositories.repository import Repository, maybe_lock
+from btcoffersapi.api.schemas.enums import Exchange, PaymentMethod
+from btcoffersapi.api.schemas.offer import Offer
+from btcoffersapi.database.client import database
+from btcoffersapi.database.locks import database_lock
+from btcoffersapi.database.repositories.repository import Repository
 
 
 class OfferRepository(Repository[Offer]):
@@ -17,7 +16,7 @@ class OfferRepository(Repository[Offer]):
         max_premium: float | None = None,
         payment_methods: list[PaymentMethod] | None = None,
         exchanges: list[Exchange] | None = None,
-        lock: asyncio.Lock | None = None
+        lock: bool = True
     ) -> list[Offer]:
         filter = {}
 
@@ -36,10 +35,10 @@ class OfferRepository(Repository[Offer]):
         if exchanges:
             filter['exchange'] = {'$in': [exchange.value for exchange in exchanges]}
 
-        async with maybe_lock(lock):
+        async with database_lock(lock):
             return [Offer(**document) async for document in self._collection.find(filter).sort('price_eur')]
 
-    async def get_by_id(self, id: str, lock: asyncio.Lock | None = None) -> Offer | None:
-        async with maybe_lock(lock):
+    async def get_by_id(self, id: str, lock: bool = True) -> Offer | None:
+        async with database_lock(lock):
             if document := await self._collection.find_one({'id': id}):
                 return Offer(**document)
