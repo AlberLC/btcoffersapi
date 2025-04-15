@@ -3,8 +3,8 @@ import json
 
 from fastapi import WebSocket
 
-from config import config
-from database.repositories.offer_repository import OfferRepository
+from btcoffersapi.config import config
+from btcoffersapi.database.repositories.offer_repository import OfferRepository
 
 
 async def notify_offers(
@@ -13,7 +13,7 @@ async def notify_offers(
     chat_id: int,
     max_price_eur: float
 ) -> None:
-    while not (offers := await offer_repository.get(max_price_eur, lock=websocket.state.database_lock)):
+    while not (offers := await offer_repository.get(max_price_eur)):
         await asyncio.sleep(config.fetch_offers_every.total_seconds())
 
     await websocket.send_text(

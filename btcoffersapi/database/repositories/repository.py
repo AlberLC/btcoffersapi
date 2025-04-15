@@ -1,18 +1,7 @@
-import asyncio
 import typing
-from collections.abc import AsyncIterator, Iterable
-from contextlib import asynccontextmanager
+from collections.abc import Iterable
 
 from motor.motor_asyncio import AsyncIOMotorCollection
-
-
-@asynccontextmanager
-async def maybe_lock(lock: asyncio.Lock | None) -> AsyncIterator[None]:
-    if lock:
-        async with lock:
-            yield
-    else:
-        yield
 
 
 class Repository:
