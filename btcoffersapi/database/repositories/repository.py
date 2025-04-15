@@ -5,10 +5,11 @@ from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pydantic import BaseModel
 
-from database.client import create_object_id
+from btcoffersapi.database.client import create_object_id
+from btcoffersapi.database.locks import database_lock
 
 
-class Repository:
+class Repository[T: BaseModel]:
     def __init__(self, collection: AsyncIOMotorCollection) -> None:
         self._collection = collection
         self._T = typing.get_args(self.__orig_bases__[0])[0]
@@ -19,12 +20,8 @@ class Repository:
     async def delete_many(self, filter: dict) -> None:
         await self._collection.delete_many(filter)
 
-    async def get_all(
-        self,
-        sort_keys: str | Iterable[str | tuple[str, int]] = (),
-        lock: asyncio.Lock | None = None
-    ) -> list[T]:
-        async with maybe_lock(lock):
+    async def get_all(self, sort_keys: str | Iterable[str | tuple[str, int]] = ()) -> list[T]:
+        async with database_lock():
             cursor = self._collection.find()
 
             if sort_keys:
@@ -32,11 +29,11 @@ class Repository:
 
             return [self._T(**document) async for document in cursor]
 
-    async def get_by_object_id(self, object_id: str | ObjectId, lock: asyncio.Lock | None = None) -> T | None:
+    async def get_by_object_id(self, object_id: str | ObjectId) -> T | None:
         if isinstance(object_id, str):
             object_id = create_object_id(object_id)
 
-        async with maybe_lock(lock):
+        async with database_lock():
             if document := await self._collection.find_one({'_id': object_id}):
                 return self._T(**document)
 
