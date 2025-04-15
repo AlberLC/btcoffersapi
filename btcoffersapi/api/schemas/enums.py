@@ -6,6 +6,7 @@ class Exchange(Enum):
     LNP2PBOT = 'lnp2pBot'
     ROBOSATS = 'RoboSats'
 
+
 class PaymentMethod(Enum):
     CREDIT_CARD = 'Credit card'
     BIZUM = 'Bizum'
