@@ -18,7 +18,10 @@ class OffersParams(BaseModel):
     @model_validator(mode='after')
     def validate(self) -> Self:
         if len(
-            [parameter for parameter in (self.max_price_eur, self.max_price_usd, self.max_premium) if parameter]
+            [
+                parameter for parameter in (self.max_price_eur, self.max_price_usd, self.max_premium)
+                if parameter is not None
+            ]
         ) > 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

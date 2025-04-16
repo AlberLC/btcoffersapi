@@ -20,13 +20,13 @@ class OfferRepository(Repository[Offer]):
     ) -> list[Offer]:
         filter = {}
 
-        if max_price_eur:
+        if max_price_eur is not None:
             filter['price_eur'] = {"$lte": max_price_eur}
 
-        if max_price_usd:
+        if max_price_usd is not None:
             filter['price_usd'] = {"$lte": max_price_usd}
 
-        if max_premium:
+        if max_premium is not None:
             filter['premium'] = {"$lte": max_premium}
 
         if payment_methods:
