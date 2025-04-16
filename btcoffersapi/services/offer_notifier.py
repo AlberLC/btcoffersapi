@@ -11,9 +11,9 @@ async def notify_offers(
     websocket: WebSocket,
     offer_repository: OfferRepository,
     chat_id: int,
-    max_price_eur: float
+    query: dict[str, float]
 ) -> None:
-    while not (offers := await offer_repository.get(max_price_eur)):
+    while not (offers := await offer_repository.get(**query)):
         await asyncio.sleep(config.fetch_offers_every.total_seconds())
 
     await websocket.send_text(
