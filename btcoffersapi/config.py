@@ -36,6 +36,7 @@ class Config(BaseSettings):
     }
     mongo_username: str | None = None
     mongo_password: str | None = None
+    robosats_coordinator_endpoint_template: str = '{}/api/book/?format=json'
     robosats_coordinators_url: str = 'https://raw.githubusercontent.com/RoboSats/robosats/refs/heads/main/frontend/static/federation.json'
     robosats_payment_methods: dict[str, PaymentMethod] = {
         'Paypal Friends & Family': PaymentMethod.PAYPAL,
@@ -47,6 +48,7 @@ class Config(BaseSettings):
     telegram_api_hash: str | None = None
     telegram_api_id: int | None = None
     telegram_user_session: str | None = None
+    tor_proxy_url: str = 'socks5://localhost:9050'
     yadio_api_endpoint: str = 'https://api.yadio.io/exrates/EUR'
 
     model_config = SettingsConfigDict(env_file=Path(__file__).resolve().parent.parent / '.env')
