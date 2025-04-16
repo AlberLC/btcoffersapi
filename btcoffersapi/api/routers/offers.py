@@ -31,7 +31,7 @@ async def websocket_endpoint(
 
         if data['action'] == 'start':
             notification_tasks[data['chat_id']] = asyncio.create_task(
-                offer_notifier.notify_offers(websocket, offer_repository, data['chat_id'], float(data['max_price_eur']))
+                offer_notifier.notify_offers(websocket, offer_repository, data['chat_id'], data['query'])
             )
 
 
