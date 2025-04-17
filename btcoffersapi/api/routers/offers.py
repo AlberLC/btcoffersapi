@@ -26,7 +26,7 @@ async def websocket_endpoint(
         except WebSocketDisconnect:
             break
 
-        if notifier_task := notification_tasks[data['chat_id']]:
+        if notifier_task := notification_tasks.get(data['chat_id']):
             notifier_task.cancel()
 
         if data['action'] == 'start':
