@@ -17,19 +17,22 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) ->
     offers = []
 
     connector = aiohttp_socks.ProxyConnector.from_url(config.tor_proxy_url)
-    async with aiohttp.ClientSession(connector=connector) as session:
+    async with aiohttp.ClientSession(connector=connector, headers={'Accept': 'application/json'}) as session:
         params = {
             'currency': 2,
             'type': 1
         }
         for coordinator_url in coordinators_urls:
-            async with session.get(
-                config.robosats_coordinator_endpoint_template.format(coordinator_url), params=params
-            ) as response:
-                if response.status == status.HTTP_404_NOT_FOUND:
-                    continue
+            try:
+                async with session.get(
+                    config.robosats_coordinator_endpoint_template.format(coordinator_url), params=params
+                ) as response:
+                    if response.status == status.HTTP_404_NOT_FOUND:
+                        continue
 
-                offers_data = await response.json()
+                    offers_data = await response.json()
+            except TimeoutError:
+                continue
 
             for offer_data in offers_data:
                 payment_methods = []
