@@ -1,4 +1,3 @@
-from collections import defaultdict
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -10,7 +9,7 @@ from btcoffersapi.config import config
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    yield {'notification_tasks': defaultdict(lambda: None)}
+    yield {'notification_tasks': {}}
 
 
 app = FastAPI(lifespan=lifespan, root_path='/btcoffersapi')
