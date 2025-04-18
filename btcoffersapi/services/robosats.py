@@ -35,7 +35,7 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) ->
                         continue
 
                     offers_data = await response.json()
-            except (TimeoutError, aiohttp_socks.ProxyError):
+            except (TimeoutError, aiohttp_socks.ProxyError, aiohttp.ContentTypeError):
                 continue
 
             for offer_data in offers_data:
