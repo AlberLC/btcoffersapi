@@ -1,3 +1,5 @@
+import asyncio
+
 import aiohttp
 import aiohttp_socks
 from fastapi import status
@@ -23,15 +25,17 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) ->
             'type': 1
         }
         for coordinator_url in coordinators_urls:
+            await asyncio.sleep(config.tor_request_delay)
+
             try:
                 async with session.get(
-                    config.robosats_coordinator_endpoint_template.format(coordinator_url), params=params
+                    config.robosats_coordinator_api_endpoint_template.format(coordinator_url), params=params
                 ) as response:
                     if response.status == status.HTTP_404_NOT_FOUND:
                         continue
 
                     offers_data = await response.json()
-            except TimeoutError:
+            except (TimeoutError, aiohttp_socks.ProxyError):
                 continue
 
             for offer_data in offers_data:
