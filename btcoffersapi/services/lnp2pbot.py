@@ -3,8 +3,7 @@ import flanautils
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 
-from api.schemas.enums import PaymentMethod
-from btcoffersapi.api.schemas.enums import Exchange
+from btcoffersapi.api.schemas.enums import Exchange, PaymentMethod
 from btcoffersapi.api.schemas.offer import Offer
 from btcoffersapi.config import config
 
