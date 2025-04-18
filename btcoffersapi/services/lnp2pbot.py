@@ -43,9 +43,9 @@ async def fetch_offers_from_api(session: aiohttp.ClientSession, eur_dolar_rate: 
             continue
 
         if offer_data['fiat_amount']:
-            amount = offer_data['fiat_amount']
+            amount = f"{float(offer_data['fiat_amount']):.2f}"
         else:
-            amount = f"{offer_data['min_amount']} - {offer_data['max_amount']}"
+            amount = f"{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}"
 
         premium = float(offer_data['price_margin'])
         price_eur = btc_price + premium / 100 * btc_price
