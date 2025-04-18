@@ -22,6 +22,8 @@ class Config(BaseSettings):
         '501': PaymentMethod.BIZUM,
         '9081': PaymentMethod.SEPA_INSTANT
     }
+    lnp2pbot_api_endpoint: str = 'https://api.lnp2pbot.com/orders'
+    lnp2pbot_channel_name: str = 'p2plightning'
     lnp2pbot_payment_methods: dict[str, PaymentMethod] = {
         'credit': PaymentMethod.CREDIT_CARD,
         'credito': PaymentMethod.CREDIT_CARD,
