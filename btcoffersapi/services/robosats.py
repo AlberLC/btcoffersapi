@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import aiohttp
 import aiohttp_socks
@@ -9,17 +10,28 @@ from btcoffersapi.api.schemas.offer import Offer
 from btcoffersapi.config import config
 
 
-async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) -> list[Offer]:
-    async with session.get(config.robosats_coordinators_url) as response:
-        coordinators_urls = [
-            coordinator_url for coordinator in (await response.json(content_type=None)).values()
-            if (coordinator_url := coordinator['mainnet']['onion'])
-        ]
+async def _get_coordinators_urls(session: aiohttp.ClientSession) -> list[str]:
+    for _ in range(config.robosats_coordinators_urls_attempts):
+        try:
+            async with session.get(config.robosats_coordinators_url) as response:
+                return [
+                    coordinator_url for coordinator in (await response.json(content_type=None)).values()
+                    if (coordinator_url := coordinator['mainnet']['onion'])
+                ]
+        except (AttributeError, json.JSONDecodeError, aiohttp.ClientConnectionError):
+            await asyncio.sleep(1)
 
+    return []
+
+
+async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) -> list[Offer]:
     offers = []
 
+    if not (coordinators_urls := await _get_coordinators_urls(session)):
+        return offers
+
     connector = aiohttp_socks.ProxyConnector.from_url(config.tor_proxy_url)
-    async with aiohttp.ClientSession(connector=connector, headers={'Accept': 'application/json'}) as session:
+    async with aiohttp.ClientSession(connector=connector, headers={'Accept': 'application/json'}) as tor_session:
         params = {
             'currency': 2,
             'type': 1
@@ -28,7 +40,7 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) ->
             await asyncio.sleep(config.tor_request_delay)
 
             try:
-                async with session.get(
+                async with tor_session.get(
                     config.robosats_coordinator_api_endpoint_template.format(coordinator_url), params=params
                 ) as response:
                     if response.status == status.HTTP_404_NOT_FOUND:

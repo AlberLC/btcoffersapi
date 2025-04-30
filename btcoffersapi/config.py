@@ -39,6 +39,7 @@ class Config(BaseSettings):
     mongo_password: str | None = None
     robosats_coordinator_api_endpoint_template: str = '{}/api/book/?format=json'
     robosats_coordinators_url: str = 'https://raw.githubusercontent.com/RoboSats/robosats/refs/heads/main/frontend/static/federation.json'
+    robosats_coordinators_urls_attempts: int = 5
     robosats_payment_methods: dict[str, PaymentMethod] = {
         'Paypal Friends & Family': PaymentMethod.PAYPAL,
         'Revolut': PaymentMethod.REVOLUT,
