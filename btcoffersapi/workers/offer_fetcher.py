@@ -25,7 +25,7 @@ async def fetch_offers() -> None:
                 async with database_lock():
                     await offer_repository.delete_many({})
                     await offer_repository.insert_many(offers)
-        except aiohttp.ClientConnectorError:
+        except (aiohttp.ClientConnectorError, aiohttp.ConnectionTimeoutError):
             pass
 
         await asyncio.sleep(config.fetch_offers_every.total_seconds())
