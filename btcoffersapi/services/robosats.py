@@ -5,9 +5,9 @@ import aiohttp
 import aiohttp_socks
 from fastapi import status
 
-from btcoffersapi.api.schemas.enums import Exchange
-from btcoffersapi.api.schemas.offer import Offer
-from btcoffersapi.config import config
+from api.schemas.enums import Exchange
+from api.schemas.offer import Offer
+from config import config
 
 
 async def _get_coordinators_urls(session: aiohttp.ClientSession) -> list[str]:

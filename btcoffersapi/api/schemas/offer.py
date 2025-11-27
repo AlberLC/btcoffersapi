@@ -2,7 +2,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict
 
-from btcoffersapi.api.schemas.enums import Exchange, PaymentMethod
+from api.schemas.enums import Exchange, PaymentMethod
 
 
 class Offer(BaseModel):

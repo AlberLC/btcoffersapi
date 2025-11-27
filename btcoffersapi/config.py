@@ -3,7 +3,7 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from btcoffersapi.api.schemas.enums import PaymentMethod
+from api.schemas.enums import PaymentMethod
 
 
 class Config(BaseSettings):

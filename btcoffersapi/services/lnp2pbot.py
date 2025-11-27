@@ -3,9 +3,6 @@ import flanautils
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 
-from btcoffersapi.api.schemas.enums import Exchange, PaymentMethod
-from btcoffersapi.api.schemas.offer import Offer
-from btcoffersapi.config import config
 
 client = TelegramClient(StringSession(config.telegram_user_session), config.telegram_api_id, config.telegram_api_hash)
 

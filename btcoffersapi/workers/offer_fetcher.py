@@ -2,10 +2,10 @@ import asyncio
 
 import aiohttp
 
-from btcoffersapi.config import config
-from btcoffersapi.database.locks import database_lock
-from btcoffersapi.database.repositories.offer_repository import OfferRepository
-from btcoffersapi.services import hodlhodl, lnp2pbot, robosats
+from config import config
+from database.locks import database_lock
+from database.repositories.offer_repository import OfferRepository
+from services import hodlhodl, lnp2pbot, robosats
 
 
 async def fetch_offers() -> None:

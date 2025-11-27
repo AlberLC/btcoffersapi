@@ -3,8 +3,8 @@ import json
 
 from fastapi import WebSocket, WebSocketDisconnect, websockets
 
-from btcoffersapi.config import config
-from btcoffersapi.database.repositories.offer_repository import OfferRepository
+from config import config
+from database.repositories.offer_repository import OfferRepository
 
 
 async def notify_offers(

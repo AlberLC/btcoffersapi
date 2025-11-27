@@ -3,8 +3,8 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 
-from btcoffersapi.api.routers import offers
-from btcoffersapi.config import config
+from api.routers import offers
+from config import config
 
 
 @asynccontextmanager

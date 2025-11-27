@@ -1,8 +1,8 @@
-from btcoffersapi.api.schemas.enums import Exchange, PaymentMethod
-from btcoffersapi.api.schemas.offer import Offer
-from btcoffersapi.database.client import database
-from btcoffersapi.database.locks import database_lock
-from btcoffersapi.database.repositories.repository import Repository
+from api.schemas.enums import Exchange, PaymentMethod
+from api.schemas.offer import Offer
+from database.client import database
+from database.locks import database_lock
+from database.repositories.repository import Repository
 
 
 class OfferRepository(Repository[Offer]):

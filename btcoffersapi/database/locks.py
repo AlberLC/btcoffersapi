@@ -3,8 +3,8 @@ import datetime
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from btcoffersapi.config import config
-from btcoffersapi.database.client import database
+from config import config
+from database.client import database
 
 
 @asynccontextmanager

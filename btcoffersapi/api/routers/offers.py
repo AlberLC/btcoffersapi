@@ -3,10 +3,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 
-from btcoffersapi.api.schemas.offer import Offer
-from btcoffersapi.api.schemas.offers_params import OffersParams
-from btcoffersapi.database.repositories.offer_repository import OfferRepository
-from btcoffersapi.services import offer_notifier
+from api.schemas.offer import Offer
+from api.schemas.offers_params import OffersParams
+from database.repositories.offer_repository import OfferRepository
+from services import offer_notifier
 
 router = APIRouter(prefix='/offers', tags=['offers'])
 

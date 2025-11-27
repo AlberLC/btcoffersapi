@@ -5,8 +5,8 @@ from bson import ObjectId
 from pydantic import BaseModel
 from pymongo.asynchronous.collection import AsyncCollection
 
-from btcoffersapi.database.client import create_object_id
-from btcoffersapi.database.locks import database_lock
+from database.client import create_object_id
+from database.locks import database_lock
 
 
 class Repository[T: BaseModel]:
