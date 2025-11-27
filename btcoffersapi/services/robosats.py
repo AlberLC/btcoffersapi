@@ -15,8 +15,8 @@ async def _get_coordinators_urls(session: aiohttp.ClientSession) -> list[str]:
         try:
             async with session.get(config.robosats_coordinators_url) as response:
                 return [
-                    coordinator_url for coordinator in (await response.json(content_type=None)).values()
-                    if (coordinator_url := coordinator['mainnet']['onion'])
+                    coordinator_url for coordinator_data in (await response.json(content_type=None)).values()
+                    if (coordinator_url := coordinator_data['mainnet']['onion'])
                 ]
         except (AttributeError, json.JSONDecodeError, aiohttp.ClientConnectionError):
             await asyncio.sleep(1)
@@ -52,9 +52,12 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) ->
 
             for offer_data in offers_data:
                 payment_methods = []
-                for payment_method_name, payment_method in config.robosats_payment_methods.items():
-                    if payment_method_name in offer_data['payment_method']:
-                        payment_methods.append(payment_method)
+
+                for payment_method, payment_method_names in config.robosats_payment_method_keywords.items():
+                    for payment_method_name in payment_method_names:
+                        if payment_method_name in offer_data['payment_method']:
+                            payment_methods.append(payment_method)
+                            break
 
                 if not payment_methods:
                     continue

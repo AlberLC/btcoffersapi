@@ -1,27 +1,60 @@
+import asyncio
+
 import aiohttp
 import flanautils
-from telethon import TelegramClient
-from telethon.sessions import StringSession
+import playwright.async_api
 
-
-client = TelegramClient(StringSession(config.telegram_user_session), config.telegram_api_id, config.telegram_api_hash)
+from api.schemas.enums import Exchange, PaymentMethod
+from api.schemas.offer import Offer
+from config import config
 
 
 def _find_payment_methods(text: str) -> list[PaymentMethod]:
     payment_methods = []
     normalized_description = flanautils.remove_accents(text.lower())
 
-    for payment_method_name, payment_method in config.lnp2pbot_payment_methods.items():
-        if payment_method_name in normalized_description:
-            if payment_method_name == 'instant sepa':
-                normalized_description = normalized_description.replace('instant sepa', '')
+    for payment_method, payment_method_names in config.lnp2pbot_payment_method_keywords.items():
+        for payment_method_name in payment_method_names:
+            if payment_method_name in normalized_description:
+                if payment_method_name == 'instant sepa':
+                    normalized_description = normalized_description.replace('instant sepa', '')
 
-            if payment_method_name == 'sepa instant':
-                normalized_description = normalized_description.replace('sepa instant', '')
+                if payment_method_name == 'sepa instant':
+                    normalized_description = normalized_description.replace('sepa instant', '')
 
-            payment_methods.append(payment_method)
+                payment_methods.append(payment_method)
+                break
 
     return payment_methods
+
+
+async def _get_web_message_elements(page: playwright.async_api.Page) -> list[playwright.async_api.Locator]:
+    message_selector = 'section.tgme_channel_history.js-message_history div.tgme_widget_message_text'
+    loading_selector = '.tme_messages_more'
+
+    await page.wait_for_selector(message_selector)
+
+    previous_message_elements = await page.locator(message_selector).all()
+
+    while True:
+        await _scroll_web_to_top(page)
+        await asyncio.sleep(1)
+
+        try:
+            await page.wait_for_selector(loading_selector, timeout=1000)
+        except playwright.async_api.TimeoutError:
+            return previous_message_elements
+
+        message_elements = await page.locator(message_selector).all()
+
+        if len(message_elements) == len(previous_message_elements):
+            return message_elements
+
+        previous_message_elements = message_elements
+
+
+async def _scroll_web_to_top(page: playwright.async_api.Page) -> None:
+    await page.evaluate('window.scrollTo(0, 0)')
 
 
 async def fetch_offers_from_api(session: aiohttp.ClientSession, eur_dolar_rate: float, btc_price: float) -> list[Offer]:
@@ -58,33 +91,38 @@ async def fetch_offers_from_api(session: aiohttp.ClientSession, eur_dolar_rate: 
     return offers
 
 
-async def fetch_offers_from_telegram(eur_dolar_rate: float, btc_price: float) -> list[Offer]:
-    async with client:
-        exchange_chat = await client.get_entity(config.lnp2pbot_channel_name)
+async def fetch_offers_from_web(eur_dolar_rate: float, btc_price: float) -> list[Offer]:
+    async with playwright.async_api.async_playwright() as playwright_:
+        async with await playwright_.chromium.launch() as browser:
+            page = await browser.new_page()
 
-        offers = []
-        async for message in client.iter_messages(exchange_chat, search='#SELLEUR'):
-            lines = message.text.splitlines()
+            await page.goto(config.lnp2pbot_web_url)
+            await page.wait_for_load_state('networkidle')
 
-            description = '\n'.join(lines[3:-7])
+            offers = []
 
-            if not (payment_methods := _find_payment_methods(description)):
-                continue
+            for element in await _get_web_message_elements(page):
+                lines = (await element.inner_text()).splitlines()
 
-            premium = flanautils.text_to_number(lines[-4])
-            price_eur = btc_price + premium / 100 * btc_price
+                description = '\n'.join(lines[3:-7])
 
-            offers.append(
-                Offer(
-                    id=lines[-1].strip(':'),
-                    exchange=Exchange.LNP2PBOT,
-                    amount=lines[2],
-                    price_eur=price_eur,
-                    price_usd=price_eur * eur_dolar_rate,
-                    premium=premium,
-                    payment_methods=payment_methods,
-                    description=description
+                if not (payment_methods := _find_payment_methods(description)):
+                    continue
+
+                premium = flanautils.text_to_number(lines[-4])
+                price_eur = btc_price + premium / 100 * btc_price
+
+                offers.append(
+                    Offer(
+                        id=lines[-1].strip(':'),
+                        exchange=Exchange.LNP2PBOT,
+                        amount=lines[2],
+                        price_eur=price_eur,
+                        price_usd=price_eur * eur_dolar_rate,
+                        premium=premium,
+                        payment_methods=payment_methods,
+                        description=description
+                    )
                 )
-            )
 
     return offers

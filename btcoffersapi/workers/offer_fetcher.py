@@ -19,7 +19,7 @@ async def fetch_offers() -> None:
 
                 offers = (
                     *await hodlhodl.fetch_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC']),
-                    *await lnp2pbot.fetch_offers_from_api(session, yadio_data['EUR']['USD'], yadio_data['BTC']),
+                    *await lnp2pbot.fetch_offers_from_web(yadio_data['EUR']['USD'], yadio_data['BTC']),
                     *await robosats.fetch_offers(session, yadio_data['EUR']['USD']),
                 )
                 async with database_lock():
