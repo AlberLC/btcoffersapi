@@ -44,8 +44,10 @@ async def get_offers(
         offers_params.max_price_eur,
         offers_params.max_price_usd,
         offers_params.max_premium,
-        offers_params.payment_method,
-        offers_params.exchange
+        offers_params.payment_methods,
+        offers_params.exchanges,
+        offers_params.ignore_authors,
+        offers_params.limit
     )
 
 

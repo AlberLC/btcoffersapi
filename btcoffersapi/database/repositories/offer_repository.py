@@ -16,7 +16,9 @@ class OfferRepository(Repository[Offer]):
         max_premium: float | None = None,
         payment_methods: list[PaymentMethod] | None = None,
         exchanges: list[Exchange] | None = None,
-        lock: bool = True
+        ignore_authors: list[str] | None = None,
+        limit: int | None = None,
+        should_lock: bool = True
     ) -> list[Offer]:
         filter = {}
 
@@ -35,10 +37,16 @@ class OfferRepository(Repository[Offer]):
         if exchanges:
             filter['exchange'] = {'$in': [exchange.value for exchange in exchanges]}
 
-        async with database_lock(lock):
-            return [Offer(**document) async for document in self._collection.find(filter).sort('price_eur')]
+        if ignore_authors:
+            filter['author'] = {'$nin': ignore_authors}
 
-    async def get_by_id(self, id: str, lock: bool = True) -> Offer | None:
-        async with database_lock(lock):
+        async with database_lock(should_lock):
+            return [
+                Offer(**document)
+                async for document in self._collection.find(filter).sort('price_eur').limit(limit if limit else 0)
+            ]
+
+    async def get_by_id(self, id: str, should_lock: bool = True) -> Offer | None:
+        async with database_lock(should_lock):
             if document := await self._collection.find_one({'id': id}):
                 return Offer(**document)

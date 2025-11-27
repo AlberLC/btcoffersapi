@@ -8,10 +8,10 @@ from database.client import database
 
 
 @asynccontextmanager
-async def database_lock(lock: bool = True) -> AsyncIterator[None]:
+async def database_lock(should_lock: bool = True) -> AsyncIterator[None]:
     lock_collection = database['locks']
 
-    if lock:
+    if should_lock:
         while await lock_collection.find_one(
             {'_id': 'offers_lock', 'until': {'$gte': datetime.datetime.now(datetime.timezone.utc)}}
         ):
@@ -29,5 +29,5 @@ async def database_lock(lock: bool = True) -> AsyncIterator[None]:
 
     yield
 
-    if lock:
+    if should_lock:
         await lock_collection.delete_one({'_id': 'offers_lock'})
