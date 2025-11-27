@@ -2,15 +2,15 @@ import typing
 from collections.abc import Iterable
 
 from bson import ObjectId
-from motor.motor_asyncio import AsyncIOMotorCollection
 from pydantic import BaseModel
+from pymongo.asynchronous.collection import AsyncCollection
 
 from btcoffersapi.database.client import create_object_id
 from btcoffersapi.database.locks import database_lock
 
 
 class Repository[T: BaseModel]:
-    def __init__(self, collection: AsyncIOMotorCollection) -> None:
+    def __init__(self, collection: AsyncCollection) -> None:
         self._collection = collection
         self._T = typing.get_args(self.__orig_bases__[0])[0]
 
