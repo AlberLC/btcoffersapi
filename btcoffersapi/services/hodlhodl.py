@@ -6,12 +6,26 @@ from config import config
 
 
 async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, btc_price: float) -> list[Offer]:
+    offers_data = []
+
     params = {
+        'pagination[limit]': config.hodlhodl_pagination_size,
         'filters[side]': 'sell',
         'filters[currency_code]': 'EUR'
     }
-    async with session.get(config.hodlhodl_offers_endpoint, params=params) as response:
-        offers_data = (await response.json())['offers']
+    pagination_offset = 0
+
+    while True:
+        params['pagination[offset]'] = pagination_offset
+        async with session.get(config.hodlhodl_offers_endpoint, params=params) as response:
+            if not (offers_data_part := (await response.json())['offers']):
+                break
+
+        for offer_data in offers_data_part:
+            if offer_data['searchable']:
+                offers_data.append(offer_data)
+
+        pagination_offset += config.hodlhodl_pagination_size
 
     offers = []
     for offer_data in offers_data:

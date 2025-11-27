@@ -13,6 +13,7 @@ class Config(BaseSettings):
     database_name: str = 'btcoffers'
     fetch_offers_every: datetime.timedelta = datetime.timedelta(minutes=5)
     hodlhodl_offers_endpoint: str = 'https://hodlhodl.com/api/v1/offers'
+    hodlhodl_pagination_size: int = 100
     hodlhodl_payment_methods: dict[str, PaymentMethod] = {
         '4': PaymentMethod.SEPA,
         '7': PaymentMethod.CREDIT_CARD,
