@@ -92,37 +92,43 @@ async def fetch_offers_from_api(session: aiohttp.ClientSession, eur_dolar_rate: 
 
 
 async def fetch_offers_from_web(eur_dolar_rate: float, btc_price: float) -> list[Offer]:
-    async with playwright.async_api.async_playwright() as playwright_:
-        async with await playwright_.chromium.launch() as browser:
-            page = await browser.new_page()
+    for _ in range(config.lnp2pbot_scraping_attempts):
+        try:
+            async with playwright.async_api.async_playwright() as playwright_:
+                async with await playwright_.chromium.launch() as browser:
+                    page = await browser.new_page()
 
-            await page.goto(config.lnp2pbot_web_url)
-            await page.wait_for_load_state('networkidle')
+                    await page.goto(config.lnp2pbot_web_url)
+                    await page.wait_for_load_state('networkidle')
 
-            offers = []
+                    offers = []
 
-            for element in await _get_web_message_elements(page):
-                lines = (await element.inner_text()).splitlines()
+                    for element in await _get_web_message_elements(page):
+                        lines = (await element.inner_text()).splitlines()
 
-                description = '\n'.join(lines[3:-7])
+                        description = '\n'.join(lines[3:-7])
 
-                if not (payment_methods := _find_payment_methods(description)):
-                    continue
+                        if not (payment_methods := _find_payment_methods(description)):
+                            continue
 
-                premium = flanautils.text_to_number(lines[-4])
-                price_eur = btc_price + premium / 100 * btc_price
+                        premium = flanautils.text_to_number(lines[-4])
+                        price_eur = btc_price + premium / 100 * btc_price
 
-                offers.append(
-                    Offer(
-                        id=lines[-1].strip(':'),
-                        exchange=Exchange.LNP2PBOT,
-                        amount=lines[2],
-                        price_eur=price_eur,
-                        price_usd=price_eur * eur_dolar_rate,
-                        premium=premium,
-                        payment_methods=payment_methods,
-                        description=description
-                    )
-                )
+                        offers.append(
+                            Offer(
+                                id=lines[-1].strip(':'),
+                                exchange=Exchange.LNP2PBOT,
+                                amount=lines[2],
+                                price_eur=price_eur,
+                                price_usd=price_eur * eur_dolar_rate,
+                                premium=premium,
+                                payment_methods=payment_methods,
+                                description=description
+                            )
+                        )
+        except playwright.async_api.TimeoutError:
+            await asyncio.sleep(1)
+        else:
+            return offers
 
-    return offers
+    return []

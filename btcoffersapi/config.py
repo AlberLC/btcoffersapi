@@ -34,6 +34,7 @@ class Config(BaseSettings):
         PaymentMethod.SEPA_INSTANT: ('instant sepa', 'sepa instant'),
         PaymentMethod.SEPA: ('sepa',)  # check SEPA after Instant SEPA
     }
+    lnp2pbot_scraping_attempts: int = 5
     lnp2pbot_web_url: str = f'https://t.me/s/{lnp2pbot_channel_name}?q=%23SELLEUR'
     mongo_username: str | None = None
     mongo_password: str | None = None
