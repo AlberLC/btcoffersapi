@@ -11,9 +11,9 @@ class Config(BaseSettings):
     api_port: int | None = None
     database_lock_expiration: datetime.timedelta = datetime.timedelta(seconds=30)
     database_name: str = 'btcoffers'
-    fetch_offers_every: datetime.timedelta = datetime.timedelta(minutes=5)
     hodlhodl_offers_endpoint: str = 'https://hodlhodl.com/api/v1/offers'
     hodlhodl_pagination_size: int = 100
+    hodlhodl_pagination_sleep: float = 1
     hodlhodl_payment_methods: dict[str, PaymentMethod] = {
         '4': PaymentMethod.SEPA,
         '7': PaymentMethod.CREDIT_CARD,
@@ -38,6 +38,7 @@ class Config(BaseSettings):
     lnp2pbot_web_url: str = f'https://t.me/s/{lnp2pbot_channel_name}?q=%23SELLEUR'
     mongo_username: str | None = None
     mongo_password: str | None = None
+    offers_fetch_sleep: float = datetime.timedelta(minutes=5).total_seconds()
     robosats_coordinator_api_endpoint_template: str = '{}/api/book/?format=json'
     robosats_coordinators_url: str = 'https://raw.githubusercontent.com/RoboSats/robosats/refs/heads/main/frontend/static/federation.json'
     robosats_coordinators_urls_attempts: int = 5
@@ -52,7 +53,7 @@ class Config(BaseSettings):
     telegram_api_id: int | None = None
     telegram_user_session: str | None = None
     tor_proxy_url: str = 'socks5://localhost:9050'
-    tor_request_delay: float = 1
+    tor_request_sleep: float = 1
     yadio_api_endpoint: str = 'https://api.yadio.io/exrates/EUR'
 
     model_config = SettingsConfigDict(env_file=Path(__file__).resolve().parent.parent / '.env')

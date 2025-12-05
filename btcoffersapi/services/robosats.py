@@ -36,8 +36,9 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) ->
             'currency': 2,
             'type': 1
         }
+
         for coordinator_url in coordinators_urls:
-            await asyncio.sleep(config.tor_request_delay)
+            await asyncio.sleep(config.tor_request_sleep)
 
             try:
                 async with tor_session.get(

@@ -1,4 +1,7 @@
+import asyncio
+
 import aiohttp
+from fastapi import status
 
 from api.schemas.enums import Exchange
 from api.schemas.offer import Offer
@@ -18,7 +21,11 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, bt
     while True:
         params['pagination[offset]'] = pagination_offset
         async with session.get(config.hodlhodl_offers_endpoint, params=params) as response:
-            if not (offers_data_part := (await response.json())['offers']):
+            if (
+                response.status == status.HTTP_429_TOO_MANY_REQUESTS
+                or
+                not (offers_data_part := (await response.json())['offers'])
+            ):
                 break
 
         for offer_data in offers_data_part:
@@ -27,7 +34,10 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, bt
 
         pagination_offset += config.hodlhodl_pagination_size
 
+        await asyncio.sleep(config.hodlhodl_pagination_sleep)
+
     offers = []
+
     for offer_data in offers_data:
         payment_methods = []
         for payment_method_data in offer_data['payment_method_instructions']:
