@@ -13,7 +13,7 @@ async def database_lock(should_lock: bool = True) -> AsyncIterator[None]:
 
     if should_lock:
         while await lock_collection.find_one(
-            {'_id': 'offers_lock', 'until': {'$gte': datetime.datetime.now(datetime.timezone.utc)}}
+            {'_id': 'offers_lock', 'until': {'$gte': datetime.datetime.now(datetime.UTC)}}
         ):
             await asyncio.sleep(1)
 
@@ -21,7 +21,7 @@ async def database_lock(should_lock: bool = True) -> AsyncIterator[None]:
             {'_id': 'offers_lock'},
             {
                 '$set': {
-                    'until': datetime.datetime.now(datetime.timezone.utc) + config.database_lock_expiration
+                    'until': datetime.datetime.now(datetime.UTC) + config.database_lock_expiration
                 }
             },
             upsert=True
