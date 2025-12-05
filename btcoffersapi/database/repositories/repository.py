@@ -10,7 +10,7 @@ from database.locks import database_lock
 
 
 class Repository[T: BaseModel]:
-    def __init__(self, collection: AsyncCollection) -> None:
+    def __init__(self, collection: AsyncCollection[T]) -> None:
         self._collection = collection
         self._T = typing.get_args(self.__orig_bases__[0])[0]
 
