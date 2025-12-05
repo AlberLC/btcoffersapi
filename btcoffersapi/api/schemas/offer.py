@@ -17,9 +17,3 @@ class Offer(BaseModel):
     description: str | None = None
 
     model_config = ConfigDict(use_enum_values=True)
-
-    def __eq__(self, other) -> bool:
-        return isinstance(self, Offer) and self.id == other.id
-
-    def __hash__(self) -> int:
-        return hash(self.id)
