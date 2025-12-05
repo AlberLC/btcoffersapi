@@ -13,20 +13,13 @@ async def notify_offers(
     chat_id: int,
     query: dict[str, float]
 ) -> None:
-    while not (offers := await offer_repository.get(**query)):
-        await asyncio.sleep(config.fetch_offers_every.total_seconds())
+    while not (offers_data := await offer_repository.get(**query)):
+        await asyncio.sleep(config.offers_fetch_sleep)
 
         if websocket.client_state == websockets.WebSocketState.DISCONNECTED:
             return
 
     try:
-        await websocket.send_text(
-            json.dumps(
-                {
-                    'chat_id': chat_id,
-                    'offers': [offer.model_dump() for offer in offers]
-                }
-            )
-        )
+        await websocket.send_text(json.dumps({'chat_id': chat_id, 'offers_data': offers_data}))
     except WebSocketDisconnect:
         pass

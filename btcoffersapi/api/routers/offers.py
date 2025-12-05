@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 
-from api.schemas.offer import Offer
+from api.schemas.offers_data import OfferData, OffersData
 from api.schemas.offers_params import OffersParams
 from database.repositories.offer_repository import OfferRepository
 from services import offer_notifier
@@ -39,7 +39,7 @@ async def websocket_endpoint(
 async def get_offers(
     offer_repository: Annotated[OfferRepository, Depends(OfferRepository)],
     offers_params: Annotated[OffersParams, Query()]
-) -> list[Offer]:
+) -> OffersData:
     return await offer_repository.get(
         offers_params.max_price_eur,
         offers_params.max_price_usd,
@@ -52,8 +52,8 @@ async def get_offers(
 
 
 @router.get('/{id}')
-async def get_offer(id: str, offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]) -> Offer:
-    if offer := await offer_repository.get_by_id(id):
-        return offer
+async def get_offer(id: str, offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]) -> OfferData:
+    if not (offer := await offer_repository.get_by_id(id)):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Offer not found')
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Offer not found')
+    return offer

@@ -1,5 +1,6 @@
 from api.schemas.enums import Exchange, PaymentMethod
 from api.schemas.offer import Offer
+from api.schemas.offers_data import OfferData, OffersData
 from database.client import database
 from database.locks import database_lock
 from database.repositories.repository import Repository
@@ -19,7 +20,7 @@ class OfferRepository(Repository[Offer]):
         ignore_authors: list[str] | None = None,
         limit: int | None = None,
         should_lock: bool = True
-    ) -> list[Offer]:
+    ) -> OffersData:
         filter = {}
 
         if max_price_eur is not None:
@@ -41,12 +42,22 @@ class OfferRepository(Repository[Offer]):
             filter['author'] = {'$nin': ignore_authors}
 
         async with database_lock(should_lock):
-            return [
-                Offer(**document)
-                async for document in self._collection.find(filter).sort('price_eur').limit(limit if limit else 0)
-            ]
+            metadata = await database['metadata'].find_one({'_id': 'offer'})
 
-    async def get_by_id(self, id: str, should_lock: bool = True) -> Offer | None:
+            return OffersData(
+                offers=[
+                    Offer(**document)
+                    async for document in self._collection.find(filter).sort('price_eur').limit(limit if limit else 0)
+                ],
+                updated_at=metadata.get('updated_at') if metadata else None
+            )
+
+    async def get_by_id(self, id: str, should_lock: bool = True) -> OfferData:
         async with database_lock(should_lock):
-            if document := await self._collection.find_one({'id': id}):
-                return Offer(**document)
+            document = await self._collection.find_one({'id': id})
+            metadata = await database['metadata'].find_one({'_id': 'offer'})
+
+            return OfferData(
+                offer=Offer(**document) if document else None,
+                updated_at=metadata.get('updated_at') if metadata else None
+            )
