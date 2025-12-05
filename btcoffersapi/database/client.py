@@ -14,5 +14,5 @@ def create_object_id(id: str) -> ObjectId:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f'{id} is not a valid ObjectId')
 
 
-client = AsyncMongoClient(username=config.mongo_username, password=config.mongo_password)
+client = AsyncMongoClient(username=config.mongo_username, password=config.mongo_password, tz_aware=True)
 database: AsyncDatabase = client[config.database_name]
