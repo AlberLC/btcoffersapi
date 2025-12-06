@@ -14,6 +14,9 @@ def _find_payment_methods(text: str) -> list[PaymentMethod]:
     normalized_description = flanautils.remove_accents(text.lower())
 
     for payment_method, payment_method_names in config.lnp2pbot_payment_method_keywords.items():
+        if payment_method in payment_methods:
+            continue
+
         for payment_method_name in payment_method_names:
             if payment_method_name in normalized_description:
                 if payment_method_name == 'instant sepa':

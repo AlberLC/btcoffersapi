@@ -40,11 +40,15 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, bt
 
     for offer_data in offers_data:
         payment_methods = []
+
         for payment_method_data in offer_data['payment_method_instructions']:
             try:
-                payment_methods.append(config.hodlhodl_payment_methods[payment_method_data['payment_method_id']])
+                payment_method = config.hodlhodl_payment_methods[payment_method_data['payment_method_id']]
             except KeyError:
                 pass
+            else:
+                if payment_method not in payment_methods:
+                    payment_methods.append(payment_method)
 
         if not payment_methods:
             continue

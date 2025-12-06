@@ -55,6 +55,9 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float) ->
                 payment_methods = []
 
                 for payment_method, payment_method_names in config.robosats_payment_method_keywords.items():
+                    if payment_method in payment_methods:
+                        continue
+
                     for payment_method_name in payment_method_names:
                         if payment_method_name in offer_data['payment_method']:
                             payment_methods.append(payment_method)
