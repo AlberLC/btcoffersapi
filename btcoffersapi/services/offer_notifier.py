@@ -1,6 +1,7 @@
 import asyncio
 import json
 
+import fastapi.encoders
 from fastapi import WebSocket, WebSocketDisconnect, websockets
 
 from config import config
@@ -20,6 +21,8 @@ async def notify_offers(
             return
 
     try:
-        await websocket.send_text(json.dumps({'chat_id': chat_id, 'offers_data': offers_data}))
+        await websocket.send_text(
+            json.dumps({'chat_id': chat_id, 'offers_data': fastapi.encoders.jsonable_encoder(offers_data)})
+        )
     except WebSocketDisconnect:
         pass
