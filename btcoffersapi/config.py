@@ -25,6 +25,8 @@ class Config(BaseSettings):
     }
     lnp2pbot_api_endpoint: str = 'https://api.lnp2pbot.com/orders'
     lnp2pbot_channel_name: str = 'p2plightning'
+    lnp2pbot_loading_selector_timeout: float = 1000
+    lnp2pbot_message_selector_timeout: float = 5000
     lnp2pbot_payment_method_keywords: dict[PaymentMethod, tuple[str, ...]] = {
         PaymentMethod.CREDIT_CARD: ('credit', 'credito'),
         PaymentMethod.PAYPAL: ('paypal',),

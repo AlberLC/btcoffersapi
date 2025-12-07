@@ -35,7 +35,10 @@ async def _get_web_message_elements(page: playwright.async_api.Page) -> list[pla
     message_selector = 'section.tgme_channel_history.js-message_history div.tgme_widget_message_text'
     loading_selector = '.tme_messages_more'
 
-    await page.wait_for_selector(message_selector)
+    try:
+        await page.wait_for_selector(message_selector, timeout=config.lnp2pbot_message_selector_timeout)
+    except playwright.async_api.TimeoutError:
+        return []
 
     previous_message_elements = await page.locator(message_selector).all()
 
@@ -44,7 +47,7 @@ async def _get_web_message_elements(page: playwright.async_api.Page) -> list[pla
         await asyncio.sleep(1)
 
         try:
-            await page.wait_for_selector(loading_selector, timeout=1000)
+            await page.wait_for_selector(loading_selector, timeout=config.lnp2pbot_loading_selector_timeout)
         except playwright.async_api.TimeoutError:
             return previous_message_elements
 
