@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import itertools
 
 import aiohttp
 
@@ -19,10 +20,12 @@ async def fetch_offers() -> None:
                 async with session.get(config.yadio_api_endpoint) as response:
                     yadio_data = await response.json()
 
-                offers = (
-                    *await hodlhodl.fetch_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC']),
-                    *await lnp2pbot.fetch_offers_from_web(yadio_data['EUR']['USD'], yadio_data['BTC']),
-                    *await robosats.fetch_offers(session, yadio_data['EUR']['USD']),
+                offers = itertools.chain.from_iterable(
+                    await asyncio.gather(
+                        hodlhodl.fetch_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC']),
+                        lnp2pbot.fetch_offers_from_web(yadio_data['EUR']['USD'], yadio_data['BTC']),
+                        robosats.fetch_offers(session, yadio_data['EUR']['USD'])
+                    )
                 )
 
                 async with database_lock():

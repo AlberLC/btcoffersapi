@@ -1,6 +1,7 @@
 import typing
 from collections.abc import Iterable
 
+import pymongo.errors
 from bson import ObjectId
 from pydantic import BaseModel
 from pymongo.asynchronous.collection import AsyncCollection
@@ -42,4 +43,7 @@ class Repository[T: BaseModel]:
         return item
 
     async def insert_many(self, items: Iterable[T]) -> None:
-        await self._collection.insert_many((item.model_dump() for item in items))
+        try:
+            await self._collection.insert_many((item.model_dump() for item in items))
+        except pymongo.errors.InvalidOperation:
+            pass
