@@ -22,7 +22,7 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, bt
         params['pagination[offset]'] = pagination_offset
         async with session.get(config.hodlhodl_offers_endpoint, params=params) as response:
             if (
-                response.status == status.HTTP_429_TOO_MANY_REQUESTS
+                response.status != status.HTTP_200_OK
                 or
                 not (offers_data_part := (await response.json())['offers'])
             ):
