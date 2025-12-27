@@ -132,7 +132,7 @@ async def fetch_offers_from_web(eur_dolar_rate: float, btc_price: float) -> list
                                 description=description
                             )
                         )
-        except playwright.async_api.TimeoutError:
+        except playwright.async_api.Error:
             await asyncio.sleep(1)
         else:
             return offers
