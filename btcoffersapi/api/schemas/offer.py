@@ -1,12 +1,10 @@
-from typing import Annotated
-
-from pydantic import BaseModel, BeforeValidator, ConfigDict
+from pydantic import BaseModel, ConfigDict
 
 from api.schemas.enums import Exchange, PaymentMethod
 
 
 class Offer(BaseModel):
-    id: Annotated[str, BeforeValidator(str)]
+    id: str
     exchange: Exchange
     author: str | None = None
     amount: str
