@@ -6,14 +6,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from api.schemas.enums import PaymentMethod
 
 
-class Config(BaseSettings):
+class AppSettings(BaseSettings):
     api_host: str | None = None
     api_port: int | None = None
-    database_lock_expiration: datetime.timedelta = datetime.timedelta(seconds=30)
-    database_name: str = 'btcoffers'
+
+    model_config = SettingsConfigDict(env_file=Path(__file__).parent.parent / '.env')
+
+
+class HodlHodlSettings(AppSettings):
     hodlhodl_offers_endpoint: str = 'https://hodlhodl.com/api/v1/offers'
     hodlhodl_pagination_size: int = 100
-    hodlhodl_pagination_sleep: float = 1
+    hodlhodl_pagination_sleep: float = 1.0
     hodlhodl_payment_methods: dict[str, PaymentMethod] = {
         '4': PaymentMethod.SEPA,
         '7': PaymentMethod.CREDIT_CARD,
@@ -23,11 +26,35 @@ class Config(BaseSettings):
         '501': PaymentMethod.BIZUM,
         '9081': PaymentMethod.SEPA_INSTANT
     }
+
+
+class LnP2pBotSettings(AppSettings):
     lnp2pbot_api_endpoint: str = 'https://api.lnp2pbot.com/orders'
     lnp2pbot_channel_name: str = 'p2plightning'
-    lnp2pbot_loading_selector_timeout: float = 1000
-    lnp2pbot_message_selector_timeout: float = 5000
-    lnp2pbot_payment_method_keywords: dict[PaymentMethod, tuple[str, ...]] = {
+    lnp2pbot_loading_selector_timeout: float = 1000.0
+    lnp2pbot_message_selector_timeout: float = 5000.0
+    lnp2pbot_scraping_attempts: int = 5
+    lnp2pbot_web_url: str = f'https://t.me/s/{lnp2pbot_channel_name}?q=%23SELLEUR'
+
+
+class MongoSettings(AppSettings):
+    database_lock_expiration: datetime.timedelta = datetime.timedelta(seconds=30)
+    database_name: str = 'btcoffers'
+    mongo_username: str | None = None
+    mongo_password: str | None = None
+
+
+class RoboSatstSettings(AppSettings):
+    robosats_coordinator_api_endpoint_template: str = '{}/api/book/?format=json'
+    robosats_coordinators_url: str = (
+        'https://raw.githubusercontent.com/RoboSats/robosats/refs/heads/main/frontend/static/federation.json'
+    )
+    robosats_coordinators_urls_attempts: int = 5
+
+
+class Config(HodlHodlSettings, LnP2pBotSettings, MongoSettings, RoboSatstSettings):
+    offers_fetch_sleep: float = datetime.timedelta(minutes=5).total_seconds()
+    payment_method_keywords: dict[PaymentMethod, tuple[str, ...]] = {
         PaymentMethod.CREDIT_CARD: ('credit', 'credito'),
         PaymentMethod.PAYPAL: ('paypal',),
         PaymentMethod.REVOLUT: ('revolut',),
@@ -36,29 +63,12 @@ class Config(BaseSettings):
         PaymentMethod.SEPA_INSTANT: ('instant sepa', 'sepa instant'),
         PaymentMethod.SEPA: ('sepa',)  # check SEPA after Instant SEPA
     }
-    lnp2pbot_scraping_attempts: int = 5
-    lnp2pbot_web_url: str = f'https://t.me/s/{lnp2pbot_channel_name}?q=%23SELLEUR'
-    mongo_username: str | None = None
-    mongo_password: str | None = None
-    offers_fetch_sleep: float = datetime.timedelta(minutes=5).total_seconds()
-    robosats_coordinator_api_endpoint_template: str = '{}/api/book/?format=json'
-    robosats_coordinators_url: str = 'https://raw.githubusercontent.com/RoboSats/robosats/refs/heads/main/frontend/static/federation.json'
-    robosats_coordinators_urls_attempts: int = 5
-    robosats_payment_method_keywords: dict[PaymentMethod, tuple[str, ...]] = {
-        PaymentMethod.PAYPAL: ('Paypal Friends & Family',),
-        PaymentMethod.REVOLUT: ('Revolut',),
-        PaymentMethod.HALCASH: ('HalCash',),
-        PaymentMethod.BIZUM: ('Bizum',),
-        PaymentMethod.SEPA_INSTANT: ('Instant SEPA',)
-    }
     telegram_api_hash: str | None = None
     telegram_api_id: int | None = None
     telegram_user_session: str | None = None
     tor_proxy_url: str = 'socks5://localhost:9050'
-    tor_request_sleep: float = 1
+    tor_request_sleep: float = 1.0
     yadio_api_endpoint: str = 'https://api.yadio.io/exrates/EUR'
-
-    model_config = SettingsConfigDict(env_file=Path(__file__).resolve().parent.parent / '.env')
 
 
 config = Config()

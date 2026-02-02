@@ -9,11 +9,11 @@ from api.schemas.offer import Offer
 from config import config
 
 
-def _find_payment_methods(text: str) -> list[PaymentMethod]:
+def _find_payment_methods(description: str) -> list[PaymentMethod]:
     payment_methods = []
-    normalized_description = flanautils.remove_accents(text.lower())
+    normalized_description = flanautils.remove_accents(description.lower())
 
-    for payment_method, payment_method_names in config.lnp2pbot_payment_method_keywords.items():
+    for payment_method, payment_method_names in config.payment_method_keywords.items():
         if payment_method in payment_methods:
             continue
 
@@ -78,6 +78,11 @@ async def fetch_offers_from_api(session: aiohttp.ClientSession, eur_dolar_rate: 
         ):
             continue
 
+        if offer_data['fiat_amount']:
+            amount_value = f'{float(offer_data['fiat_amount']):.2f}'
+        else:
+            amount_value = f'{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}'
+
         premium = float(offer_data['price_margin'])
         price_eur = btc_price + premium / 100 * btc_price
 
@@ -85,7 +90,7 @@ async def fetch_offers_from_api(session: aiohttp.ClientSession, eur_dolar_rate: 
             Offer(
                 id=offer_data['_id'],
                 exchange=Exchange.LNP2PBOT,
-                amount=f'{f'{float(offer_data['fiat_amount']):.2f}' if offer_data['fiat_amount'] else f'{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}'} €',
+                amount=f'{amount_value} €',
                 price_eur=price_eur,
                 price_usd=price_eur * eur_dolar_rate,
                 premium=float(offer_data['price_margin']),
