@@ -1,4 +1,6 @@
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI
@@ -8,7 +10,7 @@ from config import config
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any]]:
     yield {'notification_tasks': {}}
 
 
