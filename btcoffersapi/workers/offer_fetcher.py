@@ -42,4 +42,5 @@ async def fetch_offers() -> None:
         await asyncio.sleep(config.offers_fetch_sleep)
 
 
-asyncio.run(fetch_offers())
+def run() -> None:
+    asyncio.run(fetch_offers())
