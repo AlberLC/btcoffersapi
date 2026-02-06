@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=flanauser
 WorkingDirectory=/opt/btcoffersapi/btcoffersapi
-ExecStart=/opt/btcoffersapi/.venv/bin/gunicorn -b 0.0.0.0:5211 -w 4 -k uvicorn.workers.UvicornWorker main:app
+ExecStart=/opt/btcoffersapi/.venv/bin/gunicorn -c /opt/btcoffersapi/gunicorn.conf.py main:app
 
 [Install]
 WantedBy=multi-user.target
