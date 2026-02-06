@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import itertools
+from typing import Never
 
 import aiohttp
 
@@ -11,7 +12,7 @@ from database.repositories.offer_repository import OfferRepository
 from services import hodlhodl, lnp2pbot, robosats
 
 
-async def fetch_offers() -> None:
+async def fetch_offers() -> Never:
     offer_repository = OfferRepository()
 
     while True:
@@ -42,5 +43,6 @@ async def fetch_offers() -> None:
         await asyncio.sleep(config.offers_fetch_sleep)
 
 
-def run() -> None:
+def run() -> Never:
+    # noinspection PyUnreachableCode
     asyncio.run(fetch_offers())
