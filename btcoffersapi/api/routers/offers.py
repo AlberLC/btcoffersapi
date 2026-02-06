@@ -11,7 +11,7 @@ from services import offer_notifier
 router = APIRouter(prefix='/offers', tags=['offers'])
 
 
-@router.websocket('')
+@router.websocket('/ws/notifications')
 async def websocket_endpoint(
     websocket: WebSocket,
     offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]
