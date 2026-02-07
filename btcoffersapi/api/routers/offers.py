@@ -37,8 +37,8 @@ async def websocket_endpoint(
 
 @router.get('')
 async def get_offers(
-    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)],
-    offers_params: Annotated[OffersParams, Query()]
+    offers_params: Annotated[OffersParams, Query()],
+    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]
 ) -> OffersData:
     return await offer_repository.get(
         offers_params.max_price_eur,
