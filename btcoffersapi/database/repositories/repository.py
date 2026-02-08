@@ -1,5 +1,5 @@
 import typing
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 
 import pymongo.errors
 from bson import ObjectId
@@ -21,7 +21,7 @@ class Repository[T: BaseModel]:
     async def delete_many(self, filter: dict) -> None:
         await self._collection.delete_many(filter)
 
-    async def get_all(self, sort_keys: str | Iterable[str | tuple[str, int]] = ()) -> list[T]:
+    async def get_all(self, sort_keys: Sequence[str | tuple[str, int]] | None = None) -> list[T]:
         async with database_lock():
             cursor = self._collection.find()
 
