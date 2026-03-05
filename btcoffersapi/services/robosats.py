@@ -28,7 +28,7 @@ def _find_payment_methods(offer_payment_method_names: str) -> list[PaymentMethod
 
 
 async def _get_coordinators_urls(session: aiohttp.ClientSession) -> list[str]:
-    for _ in range(config.robosats_coordinators_urls_attempts):
+    for attempt in range(config.robosats_coordinators_urls_attempts - 1, -1, -1):
         try:
             async with session.get(config.robosats_coordinators_url) as response:
                 return [
@@ -36,7 +36,8 @@ async def _get_coordinators_urls(session: aiohttp.ClientSession) -> list[str]:
                     if (coordinator_url := coordinator_data['mainnet']['onion'])
                 ]
         except (AttributeError, json.JSONDecodeError, aiohttp.ClientConnectionError):
-            await asyncio.sleep(1)
+            if attempt:
+                await asyncio.sleep(1)
 
     return []
 

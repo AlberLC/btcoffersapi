@@ -103,7 +103,7 @@ async def fetch_offers_from_api(session: aiohttp.ClientSession, eur_dolar_rate: 
 
 
 async def fetch_offers_from_web(eur_dolar_rate: float, btc_price: float) -> list[Offer]:
-    for _ in range(config.lnp2pbot_scraping_attempts):
+    for attempt in range(config.lnp2pbot_scraping_attempts - 1, -1, -1):
         try:
             async with playwright.async_api.async_playwright() as playwright_:
                 async with await playwright_.chromium.launch() as browser:
@@ -138,7 +138,8 @@ async def fetch_offers_from_web(eur_dolar_rate: float, btc_price: float) -> list
                             )
                         )
         except playwright.async_api.Error:
-            await asyncio.sleep(1)
+            if attempt:
+                await asyncio.sleep(1)
         else:
             return offers
 
