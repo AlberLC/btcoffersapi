@@ -30,8 +30,8 @@ async def fetch_offers() -> Never:
                 )
 
                 async with database_lock():
-                    await offer_repository.delete_many({})
-                    await offer_repository.insert_many(offers)
+                    await offer_repository.delete({'exchange': {'$in': ['HodlHodl', 'RoboSats']}})
+                    await offer_repository.insert(offers)
                     await database['metadata'].update_one(
                         {'_id': 'offer'},
                         {'$set': {'updated_at': datetime.datetime.now(datetime.UTC)}},
