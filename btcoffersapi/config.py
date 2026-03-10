@@ -36,7 +36,23 @@ class LnP2pBotSettings(AppSettings):
     lnp2pbot_loading_selector_timeout: float = 1000.0
     lnp2pbot_max_rating: float = 5.0
     lnp2pbot_message_selector_timeout: float = 5000.0
-    lnp2pbot_scraping_attempts: int = 5
+    lnp2pbot_nostr_fetch_attempts: int = 3
+    lnp2pbot_nostr_events_limit: int = 300
+    lnp2pbot_nostr_event_kind: int = 38383
+    lnp2pbot_nostr_pagination_sleep: float = 0.3
+    lnp2pbot_nostr_public_key: str = 'fcc2a0bd8f5803f6dd8b201a1ddb67a4b6e268371fe7353d41d2b6684af7a61e'
+    lnp2pbot_nostr_relay_reconnect_sleep: float = datetime.timedelta(hours=1).total_seconds()
+    lnp2pbot_nostr_relay_urls: tuple[str, ...] = (
+        'wss://nos.lol',
+        'wss://nostr-pub.wellorder.net',
+        'wss://relay.damus.io',
+        'wss://relay.mostro.network',
+        'wss://relay.nostr.band'
+    )
+    lnp2pbot_nostr_subscription_id: str = 'offers'
+    lnp2pbot_nostr_timeout: float = 5.0
+    lnp2pbot_nostr_ws_heartbeat: float = 30.0
+    lnp2pbot_scrape_attempts: int = 5
     lnp2pbot_web_url: str = f'https://t.me/s/{lnp2pbot_channel_name}?q=%23SELLEUR'
 
 

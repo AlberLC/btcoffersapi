@@ -59,13 +59,7 @@ async def fetch_offers(session: aiohttp.ClientSession, robosats_url: str, eur_do
                         continue
 
                     offers_data = await response.json()
-            except (
-                    TimeoutError,
-                    aiohttp.ContentTypeError,
-                    aiohttp.ServerDisconnectedError,
-                    aiohttp_socks.ProxyError,
-                    aiohttp_socks.ProxyTimeoutError
-            ):
+            except TimeoutError, aiohttp.ClientError, aiohttp_socks.ProxyError, aiohttp_socks.ProxyTimeoutError:
                 continue
 
             for offer_data in offers_data:
