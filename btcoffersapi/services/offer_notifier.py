@@ -6,6 +6,7 @@ from fastapi import WebSocket, WebSocketDisconnect, websockets
 from api.schemas.enums import Exchange, PaymentMethod
 from config import config
 from database.repositories.offer_repository import OfferRepository
+from services import dated_offer_service
 
 
 async def notify_offers(
@@ -24,13 +25,13 @@ async def notify_offers(
 
         query[k] = v
 
-    while not (offers_data := await offer_repository.get(**query)):
+    while not (dated_offers := await dated_offer_service.get_dated_offers(offer_repository, **query)):
         await asyncio.sleep(config.offers_fetch_sleep)
 
         if websocket.client_state == websockets.WebSocketState.DISCONNECTED:
             return
 
     try:
-        await websocket.send_json(fastapi.encoders.jsonable_encoder({'chat_id': chat_id, 'offers_data': offers_data}))
+        await websocket.send_json(fastapi.encoders.jsonable_encoder({'chat_id': chat_id, 'dated_offers': dated_offers}))
     except WebSocketDisconnect:
         pass

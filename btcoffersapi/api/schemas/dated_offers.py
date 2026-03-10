@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from api.schemas.offer import Offer
 
 
-class OfferData(BaseModel):
+class DatedOffer(BaseModel):
     offer: Offer | None
     updated_at: datetime.datetime | None
 
@@ -13,7 +13,7 @@ class OfferData(BaseModel):
         return bool(self.offer)
 
 
-class OffersData(BaseModel):
+class DatedOffers(BaseModel):
     offers: list[Offer]
     updated_at: datetime.datetime | None
 

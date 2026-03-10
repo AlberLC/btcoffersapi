@@ -1,18 +1,40 @@
 import asyncio
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 
-from api.schemas.offers_data import OfferData, OffersData
+from api.schemas.dated_offers import DatedOffer, DatedOffers
 from api.schemas.offers_params import OffersParams
 from database.repositories.offer_repository import OfferRepository
-from services import offer_notifier
+from services import dated_offer_service, offer_notifier
 
 router = APIRouter(prefix='/offers', tags=['offers'])
 
 
+@router.get('')
+async def get_offers(
+    offers_params: Annotated[OffersParams, Query()],
+    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]
+) -> DatedOffers:
+    return await dated_offer_service.get_dated_offers(
+        offer_repository,
+        offers_params.max_price_eur,
+        offers_params.max_price_usd,
+        offers_params.max_premium,
+        offers_params.payment_methods,
+        offers_params.exchanges,
+        offers_params.ignore_authors,
+        offers_params.limit
+    )
+
+
+@router.get('/{id}')
+async def get_offer(id: str, offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]) -> DatedOffer:
+    return await dated_offer_service.get_dated_offer(offer_repository, id)
+
+
 @router.websocket('/ws/notifications')
-async def websocket_endpoint(
+async def handle_offer_notification(
     websocket: WebSocket,
     offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]
 ) -> None:
@@ -33,27 +55,3 @@ async def websocket_endpoint(
             notification_tasks[data['chat_id']] = asyncio.create_task(
                 offer_notifier.notify_offers(websocket, offer_repository, data['chat_id'], data['query'])
             )
-
-
-@router.get('')
-async def get_offers(
-    offers_params: Annotated[OffersParams, Query()],
-    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]
-) -> OffersData:
-    return await offer_repository.get(
-        offers_params.max_price_eur,
-        offers_params.max_price_usd,
-        offers_params.max_premium,
-        offers_params.payment_methods,
-        offers_params.exchanges,
-        offers_params.ignore_authors,
-        offers_params.limit
-    )
-
-
-@router.get('/{id}')
-async def get_offer(id: str, offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]) -> OfferData:
-    if not (offer := await offer_repository.get_by_id(id)):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Offer not found')
-
-    return offer
