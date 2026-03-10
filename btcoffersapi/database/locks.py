@@ -27,7 +27,8 @@ async def database_lock(should_lock: bool = True) -> AsyncIterator[None]:
             upsert=True
         )
 
-    yield
-
-    if should_lock:
-        await lock_collection.delete_one({'_id': 'offers_lock'})
+    try:
+        yield
+    finally:
+        if should_lock:
+            await lock_collection.delete_one({'_id': 'offers_lock'})
