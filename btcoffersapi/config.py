@@ -17,14 +17,15 @@ class HodlHodlSettings(AppSettings):
     hodlhodl_offers_endpoint: str = 'https://hodlhodl.com/api/v1/offers'
     hodlhodl_pagination_size: int = 100
     hodlhodl_pagination_sleep: float = 1.0
-    hodlhodl_payment_methods: dict[str, PaymentMethod] = {
-        '4': PaymentMethod.SEPA,
-        '7': PaymentMethod.CREDIT_CARD,
-        '16': PaymentMethod.PAYPAL,
-        '52': PaymentMethod.REVOLUT,
-        '414': PaymentMethod.HALCASH,
-        '501': PaymentMethod.BIZUM,
-        '9081': PaymentMethod.SEPA_INSTANT
+    hodlhodl_payment_method_ids: dict[PaymentMethod, str] = {
+        PaymentMethod.BIZUM: '501',
+        PaymentMethod.CREDIT_CARD: '7',
+        PaymentMethod.HALCASH: '414',
+        PaymentMethod.INSTANT_SEPA: '9081',
+        PaymentMethod.PAYPAL: '16',
+        PaymentMethod.REVOLUT: '52',
+        PaymentMethod.SEPA: '4',
+        PaymentMethod.WISE: '7559'
     }
 
 
