@@ -8,11 +8,14 @@ from fastapi import FastAPI
 
 from api.routers import offers
 from config import config
+from database import database_setup
 from workers import offer_fetcher
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any]]:
+    await database_setup.initialize_database()
+
     yield {'notification_tasks': {}}
 
 

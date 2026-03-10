@@ -40,6 +40,7 @@ class LnP2pBotSettings(AppSettings):
 class MongoSettings(AppSettings):
     database_lock_expiration: datetime.timedelta = datetime.timedelta(seconds=30)
     database_name: str = 'btcoffers'
+    indexes: dict[str, list[dict]] = {'offer': [{'name': 'id_1', 'keys': 'id', 'unique': True}]}
     mongo_username: str | None = None
     mongo_password: str | None = None
 
