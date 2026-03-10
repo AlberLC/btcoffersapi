@@ -14,7 +14,8 @@ class AppSettings(BaseSettings):
 
 
 class HodlHodlSettings(AppSettings):
-    hodlhodl_offers_endpoint: str = 'https://hodlhodl.com/api/v1/offers'
+    hodlhodl_offers_api_endpoint: str = 'https://hodlhodl.com/api/v1/offers'
+    hodlhodl_offers_web_base_url: str = 'https://hodlhodl.com/offers'
     hodlhodl_pagination_size: int = 100
     hodlhodl_pagination_sleep: float = 1.0
     hodlhodl_payment_method_ids: dict[PaymentMethod, str] = {
@@ -33,6 +34,7 @@ class LnP2pBotSettings(AppSettings):
     lnp2pbot_api_endpoint: str = 'https://api.lnp2pbot.com/orders'
     lnp2pbot_channel_name: str = 'p2plightning'
     lnp2pbot_loading_selector_timeout: float = 1000.0
+    lnp2pbot_max_rating: float = 5.0
     lnp2pbot_message_selector_timeout: float = 5000.0
     lnp2pbot_scraping_attempts: int = 5
     lnp2pbot_web_url: str = f'https://t.me/s/{lnp2pbot_channel_name}?q=%23SELLEUR'
@@ -52,18 +54,23 @@ class RoboSatstSettings(AppSettings):
         'https://raw.githubusercontent.com/RoboSats/robosats/refs/heads/main/frontend/static/federation.json'
     )
     robosats_coordinators_urls_attempts: int = 5
+    robosats_readme_url: str = (
+        'https://raw.githubusercontent.com/RoboSats/robosats/dc98a8e68cbe1793bb285d890ad4ca4bcaae499b/README.md'
+    )
+    robosats_url: str = 'http://RoboSatsy56bwqn56qyadmcxkx767hnabg4mihxlmgyt6if5gnuxvzad.onion'
 
 
 class Config(HodlHodlSettings, LnP2pBotSettings, MongoSettings, RoboSatstSettings):
     offers_fetch_sleep: float = datetime.timedelta(minutes=5).total_seconds()
     payment_method_keywords: dict[PaymentMethod, tuple[str, ...]] = {
+        PaymentMethod.BIZUM: ('bizum',),
         PaymentMethod.CREDIT_CARD: ('credit', 'credito'),
+        PaymentMethod.HALCASH: ('cajero', 'efectivo', 'halcash'),
+        PaymentMethod.INSTANT_SEPA: ('instant sepa', 'sepa instant'),  # check INSTANT_SEPA before SEPA
         PaymentMethod.PAYPAL: ('paypal',),
         PaymentMethod.REVOLUT: ('revolut',),
-        PaymentMethod.HALCASH: ('cajero', 'efectivo', 'halcash'),
-        PaymentMethod.BIZUM: ('bizum',),
-        PaymentMethod.SEPA_INSTANT: ('instant sepa', 'sepa instant'),
-        PaymentMethod.SEPA: ('sepa',)  # check SEPA after Instant SEPA
+        PaymentMethod.SEPA: ('sepa',),
+        PaymentMethod.WISE: ('wise',)
     }
     telegram_api_hash: str | None = None
     telegram_api_id: int | None = None

@@ -15,6 +15,8 @@ from services import hodlhodl, lnp2pbot, robosats
 async def fetch_offers() -> Never:
     offer_repository = OfferRepository()
 
+    robosats_url = await robosats.fetch_robosats_url()
+
     while True:
         try:
             async with aiohttp.ClientSession() as session:
@@ -24,8 +26,7 @@ async def fetch_offers() -> Never:
                 offers = itertools.chain.from_iterable(
                     await asyncio.gather(
                         hodlhodl.fetch_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC']),
-                        lnp2pbot.fetch_offers_from_web(yadio_data['EUR']['USD'], yadio_data['BTC']),
-                        robosats.fetch_offers(session, yadio_data['EUR']['USD'])
+                        robosats.fetch_offers(session, robosats_url, yadio_data['EUR']['USD'])
                     )
                 )
 
