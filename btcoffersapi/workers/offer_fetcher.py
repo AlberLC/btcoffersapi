@@ -9,30 +9,30 @@ from config import config
 from database.client import database
 from database.locks import database_lock
 from database.repositories.offer_repository import OfferRepository
-from services import hodlhodl, robosats, yadio
-from services.lnp2pbot import lnp2pbot_nostr
+from services import hodlhodl_service, robosats_service, yadio_service
+from services.lnp2pbot import lnp2pbot_nostr_service
 
 
 async def run_offer_fetcher() -> Never:
     offer_repository = OfferRepository()
 
-    asyncio.create_task(lnp2pbot_nostr.run_nostr_offer_fetcher(offer_repository))
+    asyncio.create_task(lnp2pbot_nostr_service.run_nostr_offer_fetcher(offer_repository))
 
-    robosats_url = await robosats.fetch_robosats_url()
+    robosats_url = await robosats_service.fetch_robosats_url()
 
     while True:
         try:
             async with aiohttp.ClientSession() as session:
-                yadio_data = await yadio.fetch_yadio_data(session)
+                yadio_data = await yadio_service.fetch_yadio_data(session)
 
                 lnp2pbot_cleanup_task = asyncio.create_task(
-                    lnp2pbot_nostr.clean_up_invalid_offers(offer_repository, session)
+                    lnp2pbot_nostr_service.clean_up_invalid_offers(offer_repository, session)
                 )
 
                 offers = itertools.chain.from_iterable(
                     await asyncio.gather(
-                        hodlhodl.fetch_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC']),
-                        robosats.fetch_offers(session, robosats_url, yadio_data['EUR']['USD'])
+                        hodlhodl_service.fetch_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC']),
+                        robosats_service.fetch_offers(session, robosats_url, yadio_data['EUR']['USD'])
                     )
                 )
 

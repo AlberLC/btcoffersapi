@@ -12,7 +12,7 @@ from config import config
 from database.locks import database_lock
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange, NostrMessageType
-from services import yadio
+from services import yadio_service
 
 
 async def _check_offer_exists(session: aiohttp.ClientSession, offer: Offer, delay: float = 0.0) -> bool:
@@ -186,7 +186,7 @@ async def clean_up_invalid_offers(offer_repository: OfferRepository, session: ai
 
 async def run_nostr_offer_fetcher(offer_repository: OfferRepository) -> None:
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(config.lnp2pbot_nostr_timeout)) as session:
-        yadio_data = await yadio.fetch_yadio_data(session)
+        yadio_data = await yadio_service.fetch_yadio_data(session)
 
         offers = await _fetch_old_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC'])
         async with database_lock():

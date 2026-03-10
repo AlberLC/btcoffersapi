@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from api.schemas.dated_offers import DatedOffer, DatedOffers
 from api.schemas.offers_params import OffersParams
 from database.repositories.offer_repository import OfferRepository
-from services import dated_offer_service, offer_notifier
+from services import dated_offer_service, offer_notifier_service
 
 router = APIRouter(prefix='/offers', tags=['offers'])
 
@@ -53,5 +53,5 @@ async def handle_offer_notification(
 
         if data['action'] == 'start':
             notification_tasks[data['chat_id']] = asyncio.create_task(
-                offer_notifier.notify_offers(websocket, offer_repository, data['chat_id'], data['query'])
+                offer_notifier_service.notify_offers(websocket, offer_repository, data['chat_id'], data['query'])
             )
