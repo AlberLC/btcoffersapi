@@ -7,11 +7,20 @@ class Exchange(Enum):
     ROBOSATS = 'RoboSats'
 
 
+class NostrMessageType(Enum):
+    CLOSE = 'CLOSE'
+    EOSE = 'EOSE'
+    EVENT = 'EVENT'
+    NOTICE = 'NOTICE'
+    REQ = 'REQ'
+
+
 class PaymentMethod(Enum):
-    CREDIT_CARD = 'Credit card'
     BIZUM = 'Bizum'
+    CREDIT_CARD = 'Credit card'
     HALCASH = 'HalCash'
+    INSTANT_SEPA = 'Instant SEPA'
     PAYPAL = 'PayPal'
     REVOLUT = 'Revolut'
     SEPA = 'SEPA'
-    SEPA_INSTANT = 'Instant SEPA'
+    WISE = 'Wise'

@@ -3,9 +3,9 @@ import asyncio
 import fastapi.encoders
 from fastapi import WebSocket, WebSocketDisconnect, websockets
 
-from api.schemas.enums import Exchange, PaymentMethod
 from config import config
 from database.repositories.offer_repository import OfferRepository
+from enums import Exchange, PaymentMethod
 from services import dated_offer_service
 
 

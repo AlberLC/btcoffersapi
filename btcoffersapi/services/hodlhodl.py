@@ -3,9 +3,9 @@ import asyncio
 import aiohttp
 from fastapi import status
 
-from api.schemas.enums import Exchange
 from api.schemas.offer import Offer
 from config import config
+from enums import Exchange
 
 
 async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, btc_price: float) -> list[Offer]:

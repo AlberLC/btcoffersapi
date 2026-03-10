@@ -5,7 +5,6 @@ import aiohttp
 import aiohttp_socks
 from fastapi import status
 
-from api.schemas.enums import Exchange, PaymentMethod
 from api.schemas.offer import Offer
 from config import config
 
@@ -14,6 +13,7 @@ def _find_payment_methods(offer_payment_method_names: str) -> list[PaymentMethod
     payment_methods = []
 
     normalized_offer_payment_method_names = offer_payment_method_names.lower()
+from enums import Exchange
 
     for payment_method, payment_method_names in config.payment_method_keywords.items():
         if payment_method in payment_methods:
