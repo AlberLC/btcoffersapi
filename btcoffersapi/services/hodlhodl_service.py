@@ -46,7 +46,7 @@ async def fetch_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, bt
         payment_methods = []
 
         for payment_method, payment_method_id in config.hodlhodl_payment_method_ids.items():
-            if payment_method_id in payment_method_ids and payment_method not in payment_methods:
+            if payment_method_id in payment_method_ids:
                 payment_methods.append(payment_method)
 
         if not payment_methods:
