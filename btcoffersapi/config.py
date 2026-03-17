@@ -1,6 +1,8 @@
 import datetime
 import re
+from collections import defaultdict
 from pathlib import Path
+from typing import Any
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -82,23 +84,45 @@ class RoboSatstSettings(AppSettings):
 
 class Config(HodlHodlSettings, LnP2pBotSettings, MongoSettings, RoboSatstSettings):
     html_fetch_attempts: int = 3
+    keyword_matching_min_score: float = 0.915
     offers_fetch_sleep: float = datetime.timedelta(minutes=5).total_seconds()
-    payment_method_keywords: dict[PaymentMethod, tuple[str, ...]] = {
+    payment_method_keyword_max_words: int = 0
+    payment_methods_keywords: dict[PaymentMethod, tuple[str, ...]] = {
         PaymentMethod.BIZUM: ('bizum',),
-        PaymentMethod.CREDIT_CARD: ('credit', 'credito'),
-        PaymentMethod.HALCASH: ('cajero', 'efectivo', 'halcash'),
-        PaymentMethod.INSTANT_SEPA: ('instant sepa', 'sepa instant'),  # check INSTANT_SEPA before SEPA
+        PaymentMethod.CARDLESS_CASH: ('atm', 'cajero', 'cardless', 'cash machine', 'codigo', 'dimo',
+                                      'dinero instantaneo', 'dinero movil', 'efectivo movil', 'halcash',
+                                      'instant money', 'sin tarjeta'),
+        PaymentMethod.CREDIT_CARD: ('card', 'credit', 'credito', 'debit', 'debito', 'tarjeta'),
+        PaymentMethod.INSTANT_SEPA: ('instant sepa', 'instantanea sepa', 'instantaneo sepa', 'sepa instant',
+                                     'sepa instantanea', 'sepa instantaneo'),
         PaymentMethod.PAYPAL: ('paypal',),
         PaymentMethod.REVOLUT: ('revolut',),
         PaymentMethod.SEPA: ('sepa',),
         PaymentMethod.WISE: ('wise',)
     }
+    payment_methods_keywords_groups: dict[PaymentMethod, list[tuple[int, set[str]]]] = {}
     telegram_api_hash: str | None = None
     telegram_api_id: int | None = None
     telegram_user_session: str | None = None
     tor_proxy_url: str = 'socks5://localhost:9050'
     tor_request_sleep: float = 1.0
     yadio_api_endpoint: str = 'https://api.yadio.io/exrates/EUR'
+
+    def model_post_init(self, _: Any) -> None:
+        for payment_method, payment_method_keywords in self.payment_methods_keywords.items():
+            payment_method_keywords_groups = defaultdict(set)
+
+            for payment_method_keyword in payment_method_keywords:
+                keyword_words = payment_method_keyword.split()
+
+                if len(keyword_words) > self.payment_method_keyword_max_words:
+                    self.payment_method_keyword_max_words = len(keyword_words)
+
+                payment_method_keywords_groups[len(keyword_words)].add(payment_method_keyword)
+
+            self.payment_methods_keywords_groups[payment_method] = sorted(
+                payment_method_keywords_groups.items(), key=lambda item: -item[0]
+            )
 
 
 config = Config()
