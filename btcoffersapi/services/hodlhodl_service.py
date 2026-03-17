@@ -39,14 +39,14 @@ async def fetch_offers(eur_dolar_rate: float, btc_price: float, session: aiohttp
     offers = []
 
     for offer_data in offers_data:
-        payment_method_ids = {
+        offer_payment_method_ids = {
             payment_method_data['payment_method_id']
             for payment_method_data in offer_data['payment_method_instructions']
         }
         payment_methods = []
 
-        for payment_method, payment_method_id in config.hodlhodl_payment_method_ids.items():
-            if payment_method_id in payment_method_ids:
+        for payment_method, payment_method_ids in config.hodlhodl_payment_methods_ids.items():
+            if payment_method_ids & offer_payment_method_ids:
                 payment_methods.append(payment_method)
 
         if not payment_methods:
