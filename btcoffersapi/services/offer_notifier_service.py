@@ -10,10 +10,10 @@ from services import dated_offer_service
 
 
 async def notify_offers(
-    websocket: WebSocket,
-    offer_repository: OfferRepository,
     chat_id: int,
-    raw_query: dict[str, float | list[str]]
+    raw_query: dict[str, float | list[str]],
+    offer_repository: OfferRepository,
+    websocket: WebSocket
 ) -> None:
     query = {}
 

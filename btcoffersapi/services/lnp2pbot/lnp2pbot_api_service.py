@@ -6,7 +6,7 @@ from enums import Exchange
 from services import payment_method_service
 
 
-async def fetch_offers_from_api(session: aiohttp.ClientSession, eur_dolar_rate: float, btc_price: float) -> list[Offer]:
+async def fetch_offers_from_api(eur_dolar_rate: float, btc_price: float, session: aiohttp.ClientSession) -> list[Offer]:
     async with session.get(config.lnp2pbot_api_endpoint) as response:
         offers_data = (await response.json())
 

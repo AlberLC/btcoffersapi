@@ -28,11 +28,11 @@ async def _check_offer_exists(session: aiohttp.ClientSession, offer: Offer, dela
     return False
 
 
-async def _fetch_old_offers(session: aiohttp.ClientSession, eur_dolar_rate: float, btc_price: float) -> list[Offer]:
+async def _fetch_old_offers(eur_dolar_rate: float, btc_price: float, session: aiohttp.ClientSession) -> list[Offer]:
     events = {}
 
     await asyncio.gather(
-        *(_merge_relay_events(session, realy_url, events) for realy_url in config.lnp2pbot_nostr_relay_urls)
+        *(_merge_relay_events(realy_url, events, session) for realy_url in config.lnp2pbot_nostr_relay_urls)
     )
 
     sorted_events = sorted(events.items(), key=lambda item: item[1].created_at)
@@ -100,11 +100,11 @@ async def _iter_relay_events(
 
 
 async def _listen_relay_events(
-    offer_repository: OfferRepository,
-    session: aiohttp.ClientSession,
     relay_url: str,
     eur_dolar_rate: float,
-    btc_price: float
+    btc_price: float,
+    offer_repository: OfferRepository,
+    session: aiohttp.ClientSession
 ) -> None:
     now = datetime.datetime.now(datetime.UTC)
 
@@ -142,9 +142,9 @@ async def _listen_relay_events(
 
 
 async def _merge_relay_events(
-    session: aiohttp.ClientSession,
     relay_url: str,
-    events: dict[str, NostrOfferEvent]
+    events: dict[str, NostrOfferEvent],
+    session: aiohttp.ClientSession
 ) -> None:
     oldest_created_at: int | None = None
     previous_oldest_created_at: int | None = None
@@ -188,7 +188,7 @@ async def run_nostr_offer_fetcher(offer_repository: OfferRepository) -> None:
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(config.lnp2pbot_nostr_timeout)) as session:
         yadio_data = await yadio_service.fetch_yadio_data(session)
 
-        offers = await _fetch_old_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC'])
+        offers = await _fetch_old_offers(yadio_data['EUR']['USD'], yadio_data['BTC'], session)
         async with database_lock():
             await offer_repository.delete({'exchange': 'lnp2pBot'})
             await offer_repository.insert(offers)
@@ -196,11 +196,12 @@ async def run_nostr_offer_fetcher(offer_repository: OfferRepository) -> None:
         await asyncio.gather(
             *(
                 _listen_relay_events(
-                    offer_repository,
-                    session,
                     realy_url,
                     yadio_data['EUR']['USD'],
-                    yadio_data['BTC']
+                    yadio_data['BTC'],
+                    offer_repository,
+                    session
+
                 )
                 for realy_url in config.lnp2pbot_nostr_relay_urls
             )

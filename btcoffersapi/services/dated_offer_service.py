@@ -7,7 +7,7 @@ from database.repositories.offer_repository import OfferRepository
 from enums import Exchange, PaymentMethod
 
 
-async def get_dated_offer(offer_repository: OfferRepository, id: str) -> DatedOffer:
+async def get_dated_offer(id: str, offer_repository: OfferRepository) -> DatedOffer:
     async with database_lock():
         metadata = await database['metadata'].find_one({'_id': 'offer'})
 

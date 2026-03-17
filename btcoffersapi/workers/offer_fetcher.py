@@ -31,8 +31,8 @@ async def run_offer_fetcher() -> Never:
 
                 offers = itertools.chain.from_iterable(
                     await asyncio.gather(
-                        hodlhodl_service.fetch_offers(session, yadio_data['EUR']['USD'], yadio_data['BTC']),
-                        robosats_service.fetch_offers(session, robosats_url, yadio_data['EUR']['USD'])
+                        hodlhodl_service.fetch_offers(yadio_data['EUR']['USD'], yadio_data['BTC'], session),
+                        robosats_service.fetch_offers(robosats_url, yadio_data['EUR']['USD'], session)
                     )
                 )
 

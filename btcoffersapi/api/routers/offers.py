@@ -30,7 +30,7 @@ async def get_offers(
 
 @router.get('/{id}')
 async def get_offer(id: str, offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]) -> DatedOffer:
-    return await dated_offer_service.get_dated_offer(offer_repository, id)
+    return await dated_offer_service.get_dated_offer(id, offer_repository)
 
 
 @router.websocket('/ws/notifications')
@@ -53,5 +53,5 @@ async def handle_offer_notification(
 
         if data['action'] == 'start':
             notification_tasks[data['chat_id']] = asyncio.create_task(
-                offer_notifier_service.notify_offers(websocket, offer_repository, data['chat_id'], data['query'])
+                offer_notifier_service.notify_offers(data['chat_id'], data['query'], offer_repository, websocket)
             )

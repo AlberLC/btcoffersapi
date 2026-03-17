@@ -38,7 +38,7 @@ async def _get_coordinators_urls(session: aiohttp.ClientSession) -> dict[str, st
     return {}
 
 
-async def fetch_offers(session: aiohttp.ClientSession, robosats_url: str, eur_dolar_rate: float) -> list[Offer]:
+async def fetch_offers(robosats_url: str, eur_dolar_rate: float, session: aiohttp.ClientSession) -> list[Offer]:
     if not (coordinators_urls := await _get_coordinators_urls(session)):
         return []
 
