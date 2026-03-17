@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from api.schemas.offer import Offer
+from api.schemas.offers import Offer
 from database.client import database
 from database.locks import database_lock
 from database.repositories.repository import Repository

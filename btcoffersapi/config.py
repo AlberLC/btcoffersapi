@@ -1,4 +1,5 @@
 import datetime
+import re
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -33,6 +34,9 @@ class HodlHodlSettings(AppSettings):
 class LnP2pBotSettings(AppSettings):
     lnp2pbot_api_endpoint: str = 'https://api.lnp2pbot.com/orders'
     lnp2pbot_channel_name: str = 'p2plightning'
+    lnp2pbot_html_author_pattern: re.Pattern[str] = re.compile(
+        r'<meta\s+property="\w+:description"\s+content=".*\n.*@(.+?)\s'
+    )
     lnp2pbot_loading_selector_timeout: float = 1000.0
     lnp2pbot_max_rating: float = 5.0
     lnp2pbot_message_selector_timeout: float = 5000.0
@@ -77,6 +81,7 @@ class RoboSatstSettings(AppSettings):
 
 
 class Config(HodlHodlSettings, LnP2pBotSettings, MongoSettings, RoboSatstSettings):
+    html_fetch_attempts: int = 3
     offers_fetch_sleep: float = datetime.timedelta(minutes=5).total_seconds()
     payment_method_keywords: dict[PaymentMethod, tuple[str, ...]] = {
         PaymentMethod.BIZUM: ('bizum',),

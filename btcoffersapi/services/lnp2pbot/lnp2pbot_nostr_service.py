@@ -7,25 +7,12 @@ import aiohttp
 import pymongo.errors
 
 from api.schemas.nostr_events import NostrOfferEvent
-from api.schemas.offer import Offer
+from api.schemas.offers import LnP2pBotOffer, Offer
 from config import config
 from database.locks import database_lock
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange, NostrMessageType
 from services import yadio_service
-
-
-async def _check_offer_exists(session: aiohttp.ClientSession, offer: Offer, delay: float = 0.0) -> bool:
-    for _ in range(config.lnp2pbot_nostr_fetch_attempts):
-        await asyncio.sleep(delay)
-
-        try:
-            async with session.get(offer.url) as response:
-                return offer.id in await response.text()
-        except TimeoutError, aiohttp.ClientError:
-            delay = 1
-
-    return False
 
 
 async def _fetch_old_offers(eur_dolar_rate: float, btc_price: float, session: aiohttp.ClientSession) -> list[Offer]:
@@ -49,7 +36,7 @@ async def _fetch_old_offers(eur_dolar_rate: float, btc_price: float, session: ai
     offers = []
 
     for event in pending_events.values():
-        if offer := event.to_offer(eur_dolar_rate, btc_price):
+        if offer := await LnP2pBotOffer.from_nostr_offer_event(event, eur_dolar_rate, btc_price, session):
             offers.append(offer)
 
     return offers
@@ -129,7 +116,14 @@ async def _listen_relay_events(
                         if (
                             await offer_repository.get_by_id(offer_id)
                             or
-                            not (offer := event.to_offer(eur_dolar_rate, btc_price))
+                            not (
+                                offer := await LnP2pBotOffer.from_nostr_offer_event(
+                                    event,
+                                    eur_dolar_rate,
+                                    btc_price,
+                                    session
+                                )
+                            )
                         ):
                             continue
 
@@ -180,7 +174,7 @@ async def _merge_relay_events(
 
 async def clean_up_invalid_offers(offer_repository: OfferRepository, session: aiohttp.ClientSession) -> None:
     for offer in await offer_repository.get_offers(exchanges=(Exchange.LNP2PBOT,)):
-        if not await _check_offer_exists(session, offer, delay=0.5):
+        if not await offer.check_exists(session):
             await offer_repository.delete_one({'id': offer.id})
 
 

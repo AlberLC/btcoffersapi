@@ -3,7 +3,7 @@ import asyncio
 import flanautils
 import playwright.async_api
 
-from api.schemas.offer import Offer
+from api.schemas.offers import Offer
 from config import config
 from enums import Exchange
 from services import payment_method_service

@@ -6,11 +6,6 @@ from typing import Any
 
 import coincurve
 
-from api.schemas.offer import Offer
-from config import config
-from enums import Exchange
-from services import payment_method_service
-
 
 class NostrEvent:
     def __init__(self, raw_event: dict[str, Any]) -> None:
@@ -81,35 +76,3 @@ class NostrOfferEvent(NostrEvent):
             and
             'mainnet' in self.tags.get('network', ())
         )
-
-    def to_offer(self, eur_dolar_rate: float, btc_price: float) -> Offer | None:
-        try:
-            description = self.tags['pm']
-
-            if not (payment_methods := payment_method_service.find_payment_methods(description)):
-                return
-
-            if isinstance(self.tags['fa'], str):
-                amount_value = self.tags['fa']
-            else:
-                amount_value = f'{self.tags['fa'][0]} - {self.tags['fa'][1]}'
-
-            premium = float(self.tags['premium'])
-            price_eur = btc_price + premium / 100 * btc_price
-            rating, _, trades = self.tags['rating']
-
-            return Offer(
-                id=self.tags['d'],
-                exchange=Exchange.LNP2PBOT,
-                amount=f'{amount_value} €',
-                price_eur=price_eur,
-                price_usd=price_eur * eur_dolar_rate,
-                premium=premium,
-                payment_methods=payment_methods,
-                description=description.strip(),
-                trades=int(trades),
-                rating=float(rating) / config.lnp2pbot_max_rating,
-                url=self.tags['source']
-            )
-        except KeyError, ValueError:
-            pass
