@@ -35,8 +35,8 @@ async def get_offer(id: str, offer_repository: Annotated[OfferRepository, Depend
 
 @router.websocket('/ws/notifications')
 async def handle_offer_notification(
-    websocket: WebSocket,
-    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]
+    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)],
+    websocket: WebSocket
 ) -> None:
     await websocket.accept()
 
