@@ -89,7 +89,7 @@ class Config(HodlHodlSettings, LnP2pBotSettings, MongoSettings, RoboSatstSetting
     payment_method_keyword_max_words: int = 0
     payment_methods_keywords: dict[PaymentMethod, tuple[str, ...]] = {
         PaymentMethod.BIZUM: ('bizum',),
-        PaymentMethod.CARDLESS_CASH: ('atm', 'cajero', 'cardless', 'cash machine', 'codigo', 'dimo',
+        PaymentMethod.CARDLESS_CASH: ('atm', 'cajero', 'cardless', 'cash machine', 'code', 'codigo', 'dimo',
                                       'dinero instantaneo', 'dinero movil', 'efectivo movil', 'halcash',
                                       'instant money', 'sin tarjeta'),
         PaymentMethod.CREDIT_CARD: ('card', 'credit', 'credito', 'debit', 'debito', 'tarjeta'),
