@@ -73,7 +73,7 @@ async def fetch_offers_from_web(eur_dolar_rate: float, btc_price: float) -> list
                                 price_usd=price_eur * eur_dolar_rate,
                                 premium=premium,
                                 payment_methods=payment_methods,
-                                description=description.strip()
+                                description=description
                             )
                         )
         except playwright.async_api.Error:

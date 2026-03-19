@@ -1,7 +1,7 @@
-from typing import Self
+from typing import Annotated, Self
 
 import aiohttp
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, PlainValidator
 
 import utils
 from api.schemas.nostr_events import NostrOfferEvent
@@ -18,7 +18,7 @@ class Offer(BaseModel):
     price_usd: float
     premium: float
     payment_methods: list[PaymentMethod]
-    description: str | None = None
+    description: Annotated[str, PlainValidator(str.strip)] | None = None
     author: str | None = None
     trades: int | None = None
     rating: float | None = None
@@ -72,7 +72,7 @@ class LnP2pBotOffer(Offer):
                 price_usd=price_eur * eur_dolar_rate,
                 premium=premium,
                 payment_methods=payment_methods,
-                description=description.strip(),
+                description=description,
                 author=await cls._fetch_offer_author(url, session),
                 trades=int(trades),
                 rating=float(rating) / config.lnp2pbot_max_rating,

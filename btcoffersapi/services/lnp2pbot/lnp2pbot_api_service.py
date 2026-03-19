@@ -38,7 +38,7 @@ async def fetch_offers_from_api(eur_dolar_rate: float, btc_price: float, session
                 price_usd=price_eur * eur_dolar_rate,
                 premium=float(offer_data['price_margin']),
                 payment_methods=payment_methods,
-                description=offer_data['description'].strip()
+                description=offer_data['description']
             )
         )
 
