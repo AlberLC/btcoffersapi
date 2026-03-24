@@ -1,3 +1,4 @@
+import urllib.parse
 from typing import Any, Self
 
 from fastapi import HTTPException, status
@@ -12,7 +13,9 @@ class OffersParams(BaseModel):
     max_premium: float | None = None
     payment_methods: list[PaymentMethod] = []
     exchanges: list[Exchange] = []
+    ignore_ids: list[str] = []
     ignore_authors: list[str] = []
+    ignore_descriptions: list[str] = []
     limit: int | None = None
 
     model_config = ConfigDict(extra='forbid', use_enum_values=True)
@@ -33,11 +36,23 @@ class OffersParams(BaseModel):
             for exchange in exchanges.split(',')
             if exchange
         ]
+        data['ignore_ids'] = [
+            urllib.parse.unquote(id)
+            for ids in data['ignore_ids']
+            for id in ids.split(',')
+            if id
+        ]
         data['ignore_authors'] = [
-            ignore_author
-            for ignore_authors in data['ignore_authors']
-            for ignore_author in ignore_authors.split(',')
-            if ignore_author
+            urllib.parse.unquote(author)
+            for authors in data['ignore_authors']
+            for author in authors.split(',')
+            if author
+        ]
+        data['ignore_descriptions'] = [
+            urllib.parse.unquote(description)
+            for descriptions in data['ignore_descriptions']
+            for description in descriptions.split(',')
+            if description
         ]
 
         return data

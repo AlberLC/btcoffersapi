@@ -23,7 +23,9 @@ async def get_offers(
         offers_params.max_premium,
         offers_params.payment_methods,
         offers_params.exchanges,
+        offers_params.ignore_ids,
         offers_params.ignore_authors,
+        offers_params.ignore_descriptions,
         offers_params.limit
     )
 

@@ -22,9 +22,11 @@ async def get_dated_offers(
     max_price_eur: float | None = None,
     max_price_usd: float | None = None,
     max_premium: float | None = None,
-    payment_methods: Sequence[PaymentMethod] | None = None,
-    exchanges: Sequence[Exchange] | None = None,
-    ignore_authors: Sequence[str] | None = None,
+    payment_methods: Sequence[PaymentMethod] = (),
+    exchanges: Sequence[Exchange] = (),
+    ignore_ids: Sequence[str] = (),
+    ignore_authors: Sequence[str] = (),
+    ignore_descriptions: Sequence[str] = (),
     limit: int | None = None
 ) -> DatedOffers:
     async with database_lock():
@@ -37,7 +39,9 @@ async def get_dated_offers(
                 max_premium,
                 payment_methods,
                 exchanges,
+                ignore_ids,
                 ignore_authors,
+                ignore_descriptions,
                 limit,
                 should_lock=False
             ),

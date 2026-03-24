@@ -1,3 +1,4 @@
+import re
 from collections.abc import Sequence
 
 from api.schemas.offers import Offer
@@ -16,9 +17,11 @@ class OfferRepository(Repository[Offer]):
         max_price_eur: float | None = None,
         max_price_usd: float | None = None,
         max_premium: float | None = None,
-        payment_methods: Sequence[PaymentMethod] | None = None,
-        exchanges: Sequence[Exchange] | None = None,
-        ignore_authors: Sequence[str] | None = None,
+        payment_methods: Sequence[PaymentMethod] = (),
+        exchanges: Sequence[Exchange] = (),
+        ignore_ids: Sequence[str] = (),
+        ignore_authors: Sequence[str] = (),
+        ignore_descriptions: Sequence[str] = (),
         limit: int | None = None,
         should_lock: bool = True
     ) -> list[Offer]:
@@ -39,8 +42,16 @@ class OfferRepository(Repository[Offer]):
         if exchanges:
             filter['exchange'] = {'$in': [exchange.value for exchange in exchanges]}
 
+        if ignore_ids:
+            filter['id'] = {'$nin': ignore_ids}
+
         if ignore_authors:
             filter['author'] = {'$nin': ignore_authors}
+
+        if ignore_descriptions:
+            filter['description'] = {
+                '$not': {'$regex': '|'.join(re.escape(description) for description in ignore_descriptions)}
+            }
 
         async with database_lock(should_lock):
             return await self.get(filter, sort_keys=('price_eur',), limit=limit)
