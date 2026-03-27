@@ -12,7 +12,7 @@ async def get_dated_offer(id: str, offer_repository: OfferRepository) -> DatedOf
         metadata = await database['metadata'].find_one({'_id': 'offer'})
 
         return DatedOffer(
-            offer=await offer_repository.get_by_id(id),
+            offer=await offer_repository.get_one({'id': id}),
             updated_at=metadata.get('updated_at') if metadata else None
         )
 
