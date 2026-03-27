@@ -61,18 +61,18 @@ async def fetch_offers(eur_dolar_rate: float, btc_price: float, session: aiohttp
 
         offers.append(
             Offer(
-                id=offer_id,
                 exchange=Exchange.HODLHODL,
+                id=offer_id,
                 amount=f'{amount_value} €',
                 price_eur=float(offer_data['price']),
                 price_usd=float(offer_data['price']) * eur_dolar_rate,
                 premium=(float(offer_data['price']) - btc_price) / btc_price * 100,
                 payment_methods=payment_methods,
-                description=offer_data['description'],
                 author=offer_data['trader']['login'],
                 trades=offer_data['trader']['trades_count'],
                 rating=offer_data['trader']['rating'],
-                url=f'{config.hodlhodl_offers_web_base_url}/{offer_id}'
+                url=f'{config.hodlhodl_offers_web_base_url}/{offer_id}',
+                description=offer_data['description']
             )
         )
 

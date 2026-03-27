@@ -75,8 +75,8 @@ async def fetch_offers(robosats_url: str, eur_dolar_rate: float, session: aiohtt
 
                 offers.append(
                     Offer(
-                        id=str(offer_id),
                         exchange=Exchange.ROBOSATS,
+                        id=str(offer_id),
                         amount=f'{amount_value} €',
                         price_eur=float(offer_data['price']),
                         price_usd=float(offer_data['price']) * eur_dolar_rate,

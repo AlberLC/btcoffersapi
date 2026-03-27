@@ -31,8 +31,8 @@ async def fetch_offers_from_api(eur_dolar_rate: float, btc_price: float, session
 
         offers.append(
             Offer(
-                id=offer_data['_id'],
                 exchange=Exchange.LNP2PBOT,
+                id=offer_data['_id'],
                 amount=f'{amount_value} €',
                 price_eur=price_eur,
                 price_usd=price_eur * eur_dolar_rate,

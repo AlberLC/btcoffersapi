@@ -11,18 +11,18 @@ from services import payment_method_service
 
 
 class Offer(BaseModel):
-    id: str
     exchange: Exchange
+    id: str
     amount: str
     price_eur: float
     price_usd: float
     premium: float
     payment_methods: list[PaymentMethod]
-    description: Annotated[str, PlainValidator(str.strip)] | None = None
     author: str | None = None
     trades: int | None = None
     rating: float | None = None
     url: str | None = None
+    description: Annotated[str, PlainValidator(str.strip)] | None = None
 
     model_config = ConfigDict(use_enum_values=True)
 
@@ -65,18 +65,18 @@ class LnP2pBotOffer(Offer):
             url = nostr_offer_event.tags['source']
 
             return Offer(
-                id=nostr_offer_event.tags['d'],
                 exchange=Exchange.LNP2PBOT,
+                id=nostr_offer_event.tags['d'],
                 amount=f'{amount_value} €',
                 price_eur=price_eur,
                 price_usd=price_eur * eur_dolar_rate,
                 premium=premium,
                 payment_methods=payment_methods,
-                description=description,
                 author=await cls._fetch_offer_author(url, session),
                 trades=int(trades),
                 rating=float(rating) / config.lnp2pbot_max_rating,
-                url=url
+                url=url,
+                description=description
             )
         except KeyError, ValueError:
             pass
