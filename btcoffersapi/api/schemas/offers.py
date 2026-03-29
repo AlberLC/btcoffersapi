@@ -59,8 +59,13 @@ class LnP2pBotOffer(Offer):
             else:
                 amount_value = f'{nostr_offer_event.tags['fa'][0]} - {nostr_offer_event.tags['fa'][1]}'
 
-            premium = float(nostr_offer_event.tags['premium'])
-            price_eur = btc_price + premium / 100 * btc_price
+            if not (sats := int(nostr_offer_event.tags['amt'])):
+                premium = float(nostr_offer_event.tags['premium'])
+                price_eur = (1 + premium / 100) * btc_price
+            else:
+                price_eur = float(amount_value) / (sats / config.sats_per_btc)
+                premium = (price_eur / btc_price - 1) * 100
+
             rating, _, trades = nostr_offer_event.tags['rating']
             url = nostr_offer_event.tags['source']
 

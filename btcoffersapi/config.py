@@ -101,6 +101,7 @@ class Config(HodlHodlSettings, LnP2pBotSettings, MongoSettings, RoboSatstSetting
         PaymentMethod.WISE: ('wise',)
     }
     payment_methods_keywords_groups: dict[PaymentMethod, list[tuple[int, set[str]]]] = {}
+    sats_per_btc: int = 100_000_000
     telegram_api_hash: str | None = None
     telegram_api_id: int | None = None
     telegram_user_session: str | None = None
