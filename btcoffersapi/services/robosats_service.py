@@ -13,14 +13,14 @@ from services import payment_method_service
 
 
 async def fetch_robosats_url() -> str:
-    try:
-        async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession() as session:
+        try:
             async with session.get(config.robosats_readme_url) as response:
                 text = await response.text()
-    except TimeoutError, aiohttp.ClientError:
-        return config.robosats_url
-    else:
-        return match.group() if (match := re.search(r'http://[a-zA-Z2-7]{56}\.onion', text)) else config.robosats_url
+        except TimeoutError, aiohttp.ClientError:
+            return config.robosats_url
+        else:
+            return match.group() if (match := re.search(r'http://[a-zA-Z2-7]{56}\.onion', text)) else config.robosats_url
 
 
 async def _get_coordinators_urls(session: aiohttp.ClientSession) -> dict[str, str]:

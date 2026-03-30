@@ -21,8 +21,8 @@ async def run_offer_fetcher() -> Never:
     robosats_url = await robosats_service.fetch_robosats_url()
 
     while True:
-        try:
-            async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as session:
+            try:
                 yadio_data = await yadio_service.fetch_yadio_data(session)
 
                 lnp2pbot_cleanup_task = asyncio.create_task(
@@ -46,8 +46,8 @@ async def run_offer_fetcher() -> Never:
                         {'$set': {'updated_at': datetime.datetime.now(datetime.UTC)}},
                         upsert=True
                     )
-        except TimeoutError, aiohttp.ClientError:
-            pass
+            except TimeoutError, aiohttp.ClientError:
+                pass
 
         await asyncio.sleep(config.offers_fetch_sleep)
 
