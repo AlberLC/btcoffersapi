@@ -23,4 +23,3 @@ class PaymentMethod(Enum):
     PAYPAL = 'PayPal'
     REVOLUT = 'Revolut'
     SEPA = 'SEPA'
-    WISE = 'Wise'

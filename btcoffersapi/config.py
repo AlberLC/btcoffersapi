@@ -28,8 +28,7 @@ class HodlHodlSettings(AppSettings):
         PaymentMethod.INSTANT_SEPA: {'9081'},
         PaymentMethod.PAYPAL: {'16'},
         PaymentMethod.REVOLUT: {'52'},
-        PaymentMethod.SEPA: {'4'},
-        PaymentMethod.WISE: {'7559'}
+        PaymentMethod.SEPA: {'4'}
     }
 
 
@@ -97,8 +96,7 @@ class Config(HodlHodlSettings, LnP2pBotSettings, MongoSettings, RoboSatstSetting
                                      'sepa instantanea', 'sepa instantaneo'),
         PaymentMethod.PAYPAL: ('paypal',),
         PaymentMethod.REVOLUT: ('revolut',),
-        PaymentMethod.SEPA: ('sepa',),
-        PaymentMethod.WISE: ('wise',)
+        PaymentMethod.SEPA: ('sepa',)
     }
     payment_methods_keywords_groups: dict[PaymentMethod, list[tuple[int, set[str]]]] = {}
     sats_per_btc: int = 100_000_000
