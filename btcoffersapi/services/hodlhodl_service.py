@@ -6,9 +6,10 @@ from fastapi import status
 from api.schemas.offers import Offer
 from config import config
 from enums import Exchange
+from services.yadio_cache_service import YadioCache
 
 
-async def fetch_offers(eur_dolar_rate: float, btc_price: float, session: aiohttp.ClientSession) -> list[Offer]:
+async def fetch_offers(yadio_cache: YadioCache, session: aiohttp.ClientSession) -> list[Offer]:
     offers_data = []
 
     params = {
@@ -65,8 +66,8 @@ async def fetch_offers(eur_dolar_rate: float, btc_price: float, session: aiohttp
                 id=offer_id,
                 amount=f'{amount_value} €',
                 price_eur=float(offer_data['price']),
-                price_usd=float(offer_data['price']) * eur_dolar_rate,
-                premium=(float(offer_data['price']) - btc_price) / btc_price * 100,
+                price_usd=float(offer_data['price']) * yadio_cache.eur_dolar_rate,
+                premium=(float(offer_data['price']) / yadio_cache.btc_price - 1) * 100,
                 payment_methods=payment_methods,
                 author=offer_data['trader']['login'],
                 trades=offer_data['trader']['trades_count'],

@@ -8,6 +8,7 @@ from api.schemas.nostr_events import NostrOfferEvent
 from config import config
 from enums import Exchange, PaymentMethod
 from services import payment_method_service
+from services.yadio_cache_service import YadioCache
 
 
 class Offer(BaseModel):
@@ -44,8 +45,7 @@ class LnP2pBotOffer(Offer):
     async def from_nostr_offer_event(
         cls,
         nostr_offer_event: NostrOfferEvent,
-        eur_dolar_rate: float,
-        btc_price: float,
+        yadio_cache: YadioCache,
         session: aiohttp.ClientSession
     ) -> Self | None:
         try:
@@ -61,10 +61,10 @@ class LnP2pBotOffer(Offer):
 
             if sats := int(nostr_offer_event.tags['amt']):
                 price_eur = float(amount_value) / (sats / config.sats_per_btc)
-                premium = (price_eur / btc_price - 1) * 100
+                premium = (price_eur / yadio_cache.btc_price - 1) * 100
             else:
                 premium = float(nostr_offer_event.tags['premium'])
-                price_eur = (1 + premium / 100) * btc_price
+                price_eur = (1 + premium / 100) * yadio_cache.btc_price
 
             rating, _, trades = nostr_offer_event.tags['rating']
             url = nostr_offer_event.tags['source']
@@ -74,7 +74,7 @@ class LnP2pBotOffer(Offer):
                 id=nostr_offer_event.tags['d'],
                 amount=f'{amount_value} €',
                 price_eur=price_eur,
-                price_usd=price_eur * eur_dolar_rate,
+                price_usd=price_eur * yadio_cache.eur_dolar_rate,
                 premium=premium,
                 payment_methods=payment_methods,
                 author=await cls._fetch_offer_author(url, session),

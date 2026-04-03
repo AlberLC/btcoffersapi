@@ -10,17 +10,7 @@ from api.schemas.offers import Offer
 from config import config
 from enums import Exchange
 from services import payment_method_service
-
-
-async def fetch_robosats_url() -> str:
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(config.robosats_readme_url) as response:
-                text = await response.text()
-        except TimeoutError, aiohttp.ClientError:
-            return config.robosats_url
-        else:
-            return match.group() if (match := re.search(r'http://[a-zA-Z2-7]{56}\.onion', text)) else config.robosats_url
+from services.yadio_cache_service import YadioCache
 
 
 async def _get_coordinators_urls(session: aiohttp.ClientSession) -> dict[str, str]:
@@ -38,7 +28,7 @@ async def _get_coordinators_urls(session: aiohttp.ClientSession) -> dict[str, st
     return {}
 
 
-async def fetch_offers(robosats_url: str, eur_dolar_rate: float, session: aiohttp.ClientSession) -> list[Offer]:
+async def fetch_offers(robosats_url: str, yadio_cache: YadioCache, session: aiohttp.ClientSession) -> list[Offer]:
     if not (coordinators_urls := await _get_coordinators_urls(session)):
         return []
 
@@ -79,7 +69,7 @@ async def fetch_offers(robosats_url: str, eur_dolar_rate: float, session: aiohtt
                         id=str(offer_id),
                         amount=f'{amount_value} €',
                         price_eur=float(offer_data['price']),
-                        price_usd=float(offer_data['price']) * eur_dolar_rate,
+                        price_usd=float(offer_data['price']) * yadio_cache.eur_dolar_rate,
                         premium=float(offer_data['premium']),
                         payment_methods=payment_methods,
                         author=offer_data['maker_nick'],
@@ -88,3 +78,13 @@ async def fetch_offers(robosats_url: str, eur_dolar_rate: float, session: aiohtt
                 )
 
     return offers
+
+
+async def fetch_robosats_url(session: aiohttp.ClientSession) -> str:
+    try:
+        async with session.get(config.robosats_readme_url) as response:
+            text = await response.text()
+    except TimeoutError, aiohttp.ClientError:
+        return config.robosats_url
+    else:
+        return match.group() if (match := re.search(r'http://[a-zA-Z2-7]{56}\.onion', text)) else config.robosats_url

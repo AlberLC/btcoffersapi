@@ -106,6 +106,7 @@ class Config(HodlHodlSettings, LnP2pBotSettings, MongoSettings, RoboSatstSetting
     tor_proxy_url: str = 'socks5://localhost:9050'
     tor_request_sleep: float = 1.0
     yadio_api_endpoint: str = 'https://api.yadio.io/exrates/EUR'
+    yadio_cache_ttl: float = 60.0
 
     def model_post_init(self, _: Any) -> None:
         for payment_method, payment_method_keywords in self.payment_methods_keywords.items():
