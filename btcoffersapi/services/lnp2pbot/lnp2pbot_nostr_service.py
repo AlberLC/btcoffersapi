@@ -103,19 +103,13 @@ async def _listen_relay_events(
                     if not event.is_valid:
                         continue
 
-                    try:
-                        offer_id = event.tags['d']
-                        status = event.tags['s']
-                    except KeyError, ValueError:
-                        continue
-
                     async with database_lock():
-                        if status != 'pending':
-                            await offer_repository.delete_one({'id': offer_id})
+                        if event.tags['s'] != 'pending':
+                            await offer_repository.delete_one({'id': event.tags['d']})
                             continue
 
                         if (
-                            await offer_repository.get_one({'id': offer_id})
+                            await offer_repository.get_one({'id': event.tags['d']})
                             or
                             not (offer := await LnP2pBotOffer.from_nostr_offer_event(event, yadio_cache, session))
                         ):

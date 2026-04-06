@@ -60,6 +60,8 @@ class NostrOfferEvent(NostrEvent):
             and
             self.tags
             and
+            self.tags.get('d')
+            and
             self.tags.get('s')
             and
             self.tags.get('k') == 'sell'
