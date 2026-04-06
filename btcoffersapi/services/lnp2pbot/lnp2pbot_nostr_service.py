@@ -90,16 +90,20 @@ async def _iter_relay_events(
 
 async def _listen_relay_events(
     relay_url: str,
-    now: datetime.datetime,
     yadio_cache: YadioCache,
     offer_repository: OfferRepository,
     session: aiohttp.ClientSession,
     nostr_session: aiohttp.ClientSession
 ) -> None:
+    since = int(datetime.datetime.now(datetime.UTC).timestamp())
+
     while True:
         try:
             async with nostr_session.ws_connect(relay_url, heartbeat=config.lnp2pbot_nostr_ws_heartbeat) as websocket:
-                async for event in _iter_relay_events(websocket, since=int(now.timestamp()), keep_listening=True):
+                async for event in _iter_relay_events(websocket, since, keep_listening=True):
+                    if event.created_at > since:
+                        since = event.created_at
+
                     if not event.is_valid:
                         continue
 
@@ -180,12 +184,10 @@ async def listen_new_offers(
 ) -> None:
     await lnp2pbot_old_offer_sync_task
 
-    now = datetime.datetime.now(datetime.UTC)
-
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(config.lnp2pbot_nostr_timeout)) as nostr_session:
         await asyncio.gather(
             *(
-                _listen_relay_events(realy_url, now, yadio_cache, offer_repository, session, nostr_session)
+                _listen_relay_events(realy_url, yadio_cache, offer_repository, session, nostr_session)
                 for realy_url in config.lnp2pbot_nostr_relay_urls
             )
         )
