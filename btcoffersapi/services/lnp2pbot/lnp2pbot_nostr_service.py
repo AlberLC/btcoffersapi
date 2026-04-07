@@ -5,12 +5,10 @@ from asyncio import Task
 from collections.abc import AsyncGenerator
 
 import aiohttp
-import pymongo.errors
 
 from api.schemas.nostr_events import NostrOfferEvent
 from api.schemas.offers import LnP2pBotOffer, Offer
 from config import config
-from database.locks import database_lock
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange, NostrMessageType
 from services.yadio_cache_service import YadioCache
@@ -107,7 +105,7 @@ async def _listen_relay_events(
                     if not event.is_valid:
                         continue
 
-                    async with database_lock():
+                    async with offer_repository.lock():
                         if event.tags['s'] != 'pending':
                             await offer_repository.delete_one({'id': event.tags['d']})
                             continue
@@ -119,10 +117,7 @@ async def _listen_relay_events(
                         ):
                             continue
 
-                        try:
-                            await offer_repository.insert_one(offer)
-                        except pymongo.errors.DuplicateKeyError:
-                            pass
+                        await offer_repository.insert_one(offer)
         except TimeoutError, aiohttp.ClientError:
             await asyncio.sleep(config.lnp2pbot_nostr_relay_reconnect_sleep)
 
@@ -200,6 +195,6 @@ async def sync_old_offers(
 ) -> None:
     offers = await _fetch_old_offers(yadio_cache, session)
 
-    async with database_lock():
+    async with offer_repository.lock():
         await offer_repository.delete({'exchange': 'lnp2pBot'})
         await offer_repository.insert(offers)

@@ -1,9 +1,12 @@
+import asyncio
+import datetime
 import re
-from collections.abc import Sequence
+from collections.abc import AsyncIterator, Sequence
+from contextlib import asynccontextmanager
 
 from api.schemas.offers import Offer
+from config import config
 from database.client import database
-from database.locks import database_lock
 from database.repositories.repository import Repository
 from enums import Exchange, PaymentMethod
 
@@ -11,6 +14,8 @@ from enums import Exchange, PaymentMethod
 class OfferRepository(Repository[Offer]):
     def __init__(self) -> None:
         super().__init__(database['offer'])
+        self._lock = asyncio.Lock()
+        self._locks_collection = database['locks']
 
     async def get_offers(
         self,
@@ -53,5 +58,30 @@ class OfferRepository(Repository[Offer]):
                 '$not': {'$regex': '|'.join(re.escape(description) for description in ignore_descriptions)}
             }
 
-        async with database_lock(should_lock):
+        async with self.lock(should_lock):
             return await self.get(filter, sort_keys=('price_eur',), limit=limit)
+
+    @asynccontextmanager
+    async def lock(self, should_lock: bool = True) -> AsyncIterator[None]:
+        async with self._lock:
+            if should_lock:
+                while await self._locks_collection.find_one(
+                    {'_id': 'offers_lock', 'until': {'$gte': datetime.datetime.now(datetime.UTC)}}
+                ):
+                    await asyncio.sleep(1)
+
+                await self._locks_collection.update_one(
+                    {'_id': 'offers_lock'},
+                    {
+                        '$set': {
+                            'until': datetime.datetime.now(datetime.UTC) + config.database_lock_expiration
+                        }
+                    },
+                    upsert=True
+                )
+
+            try:
+                yield
+            finally:
+                if should_lock:
+                    await self._locks_collection.delete_one({'_id': 'offers_lock'})

@@ -7,7 +7,6 @@ import aiohttp
 
 from config import config
 from database.client import database
-from database.locks import database_lock
 from database.repositories.offer_repository import OfferRepository
 from services import hodlhodl_service, robosats_service
 from services.lnp2pbot import lnp2pbot_nostr_service
@@ -49,7 +48,7 @@ async def run_offer_fetcher() -> Never:
                     robosats_service.fetch_offers(robosats_url, yadio_cache, session)
                 )
 
-                async with database_lock():
+                async with offer_repository.lock():
                     await offer_repository.delete({'exchange': {'$in': ['HodlHodl', 'RoboSats']}})
                     await offer_repository.insert(itertools.chain(hodlhodl_offers, robosats_offers))
                     await database['metadata'].update_one(

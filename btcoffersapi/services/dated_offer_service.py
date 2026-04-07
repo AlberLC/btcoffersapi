@@ -2,13 +2,12 @@ from collections.abc import Sequence
 
 from api.schemas.dated_offers import DatedOffer, DatedOffers
 from database.client import database
-from database.locks import database_lock
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange, PaymentMethod
 
 
 async def get_dated_offer(id: str, offer_repository: OfferRepository) -> DatedOffer:
-    async with database_lock():
+    async with offer_repository.lock():
         metadata = await database['metadata'].find_one({'_id': 'offer'})
 
         return DatedOffer(
@@ -29,7 +28,7 @@ async def get_dated_offers(
     ignore_descriptions: Sequence[str] = (),
     limit: int | None = None
 ) -> DatedOffers:
-    async with database_lock():
+    async with offer_repository.lock():
         metadata = await database['metadata'].find_one({'_id': 'offer'})
 
         return DatedOffers(
