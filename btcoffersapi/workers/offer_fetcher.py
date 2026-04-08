@@ -8,6 +8,7 @@ import aiohttp
 from config import config
 from database.client import database
 from database.repositories.offer_repository import OfferRepository
+from enums import Exchange
 from services import hodlhodl_service, robosats_service
 from services.lnp2pbot import lnp2pbot_nostr_service
 from services.yadio_cache_service import YadioCache
@@ -49,7 +50,7 @@ async def run_offer_fetcher() -> Never:
                 )
 
                 async with offer_repository.lock():
-                    await offer_repository.delete({'exchange': {'$in': ['HodlHodl', 'RoboSats']}})
+                    await offer_repository.delete_offers(exchanges=(Exchange.HODLHODL, Exchange.ROBOSATS))
                     await offer_repository.insert(itertools.chain(hodlhodl_offers, robosats_offers))
                     await database['metadata'].update_one(
                         {'_id': 'offer'},

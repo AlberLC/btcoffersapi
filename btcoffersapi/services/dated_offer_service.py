@@ -41,8 +41,7 @@ async def get_dated_offers(
                 ignore_ids,
                 ignore_authors,
                 ignore_descriptions,
-                limit,
-                should_lock=False
+                limit
             ),
             updated_at=metadata.get('updated_at') if metadata else None
         )

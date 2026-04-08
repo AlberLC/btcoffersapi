@@ -3,6 +3,7 @@ import datetime
 import re
 from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
+from typing import Any
 
 from api.schemas.offers import Offer
 from config import config
@@ -17,8 +18,8 @@ class OfferRepository(Repository[Offer]):
         self._lock = asyncio.Lock()
         self._locks_collection = database['locks']
 
-    async def get_offers(
-        self,
+    @staticmethod
+    def _build_filter(
         max_price_eur: float | None = None,
         max_price_usd: float | None = None,
         max_premium: float | None = None,
@@ -26,10 +27,8 @@ class OfferRepository(Repository[Offer]):
         exchanges: Sequence[Exchange] = (),
         ignore_ids: Sequence[str] = (),
         ignore_authors: Sequence[str] = (),
-        ignore_descriptions: Sequence[str] = (),
-        limit: int | None = None,
-        should_lock: bool = True
-    ) -> list[Offer]:
+        ignore_descriptions: Sequence[str] = ()
+    ) -> dict[str, Any]:
         filter = {}
 
         if max_price_eur is not None:
@@ -58,8 +57,56 @@ class OfferRepository(Repository[Offer]):
                 '$not': {'$regex': '|'.join(re.escape(description) for description in ignore_descriptions)}
             }
 
-        async with self.lock(should_lock):
-            return await self.get(filter, sort_keys=('price_eur',), limit=limit)
+        return filter
+
+    async def delete_offers(
+        self,
+        max_price_eur: float | None = None,
+        max_price_usd: float | None = None,
+        max_premium: float | None = None,
+        payment_methods: Sequence[PaymentMethod] = (),
+        exchanges: Sequence[Exchange] = (),
+        ignore_ids: Sequence[str] = (),
+        ignore_authors: Sequence[str] = (),
+        ignore_descriptions: Sequence[str] = ()
+    ):
+        filter = self._build_filter(
+            max_price_eur,
+            max_price_usd,
+            max_premium,
+            payment_methods,
+            exchanges,
+            ignore_ids,
+            ignore_authors,
+            ignore_descriptions
+        )
+
+        await self.delete(filter)
+
+    async def get_offers(
+        self,
+        max_price_eur: float | None = None,
+        max_price_usd: float | None = None,
+        max_premium: float | None = None,
+        payment_methods: Sequence[PaymentMethod] = (),
+        exchanges: Sequence[Exchange] = (),
+        ignore_ids: Sequence[str] = (),
+        ignore_authors: Sequence[str] = (),
+        ignore_descriptions: Sequence[str] = (),
+        limit: int | None = None
+    ) -> list[Offer]:
+        filter = self._build_filter(
+            max_price_eur,
+            max_price_usd,
+            max_premium,
+            payment_methods,
+            exchanges,
+            ignore_ids,
+            ignore_authors,
+            ignore_descriptions
+        )
+
+        return await self.get(filter, sort_keys=('price_eur',), limit=limit)
 
     @asynccontextmanager
     async def lock(self, should_lock: bool = True) -> AsyncIterator[None]:

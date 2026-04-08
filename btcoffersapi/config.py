@@ -4,6 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+import pymongo
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from enums import PaymentMethod
@@ -64,7 +65,12 @@ class LnP2pBotSettings(AppSettings):
 class MongoSettings(AppSettings):
     database_lock_expiration: datetime.timedelta = datetime.timedelta(seconds=30)
     database_name: str = 'btcoffers'
-    indexes: dict[str, list[dict]] = {'offer': [{'name': 'id_1', 'keys': 'id', 'unique': True}]}
+    indexes: dict[str, list[dict]] = {
+        'offer': [
+            {'name': 'id_1', 'keys': 'id', 'unique': True},
+            {'name': 'price_eur_1', 'keys': [('price_eur', pymongo.ASCENDING)]}
+        ]
+    }
     mongo_username: str | None = None
     mongo_password: str | None = None
 
