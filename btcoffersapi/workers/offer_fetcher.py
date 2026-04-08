@@ -39,12 +39,13 @@ async def run_offer_fetcher() -> Never:
             try:
                 await yadio_cache.refresh()
 
-                _, hodlhodl_offers, robosats_offers = await asyncio.gather(
+                _, _, hodlhodl_offers, robosats_offers = await asyncio.gather(
                     lnp2pbot_nostr_service.clean_up_invalid_offers(
                         lnp2pbot_old_offer_sync_task,
                         offer_repository,
                         session
                     ),
+                    lnp2pbot_nostr_service.refresh_offers(lnp2pbot_old_offer_sync_task, yadio_cache, offer_repository),
                     hodlhodl_service.fetch_offers(yadio_cache, session),
                     robosats_service.fetch_offers(robosats_url, yadio_cache, session)
                 )

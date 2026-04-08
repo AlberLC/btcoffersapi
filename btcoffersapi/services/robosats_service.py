@@ -59,15 +59,15 @@ async def fetch_offers(robosats_url: str, yadio_cache: YadioCache, session: aioh
                 offer_id = offer_data['id']
 
                 if offer_data['amount']:
-                    amount_value = f'{float(offer_data['amount']):.2f}'
+                    fiat_amount_value = f'{float(offer_data['amount']):.2f}'
                 else:
-                    amount_value = f'{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}'
+                    fiat_amount_value = f'{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}'
 
                 offers.append(
                     Offer(
                         exchange=Exchange.ROBOSATS,
                         id=str(offer_id),
-                        amount=f'{amount_value} €',
+                        fiat_amount=f'{fiat_amount_value} €',
                         price_eur=float(offer_data['price']),
                         price_usd=float(offer_data['price']) * yadio_cache.eur_dolar_rate,
                         premium=float(offer_data['premium']),

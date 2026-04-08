@@ -15,7 +15,7 @@ from services.yadio_cache_service import YadioCache
 class Offer(ObjectIdModel):
     exchange: Exchange
     id: str
-    amount: str
+    fiat_amount: str
     price_eur: float
     price_usd: float
     premium: float
@@ -25,11 +25,26 @@ class Offer(ObjectIdModel):
     rating: float | None = None
     url: str | None = None
     description: Annotated[str, PlainValidator(str.strip)] | None = None
+    original_sat_amount: int | None = None
+    original_fiat_amount: float | None = None
+    original_price_eur: float | None = None
 
     model_config = ConfigDict(use_enum_values=True)
 
     async def check_exists(self, session: aiohttp.ClientSession, delay: float = 0.5) -> bool:
         return self.id in html if self.url and (html := await utils.fetch_html(self.url, session, delay)) else False
+
+    def refresh_prices(self, yadio_cache: YadioCache) -> None:
+        if self.original_sat_amount and self.original_fiat_amount:
+            self.price_eur = float(self.original_fiat_amount) / (self.original_sat_amount / config.sats_per_btc)
+            self.price_usd = self.price_eur * yadio_cache.eur_dolar_rate
+            self.premium = (self.price_eur / yadio_cache.btc_price - 1) * 100
+        elif self.original_price_eur:
+            self.price_usd = self.original_price_eur * yadio_cache.eur_dolar_rate
+            self.premium = (self.original_price_eur / yadio_cache.btc_price - 1) * 100
+        else:
+            self.price_eur = (1 + self.premium / 100) * yadio_cache.btc_price
+            self.price_usd = self.price_eur * yadio_cache.eur_dolar_rate
 
 
 class LnP2pBotOffer(Offer):
@@ -56,14 +71,17 @@ class LnP2pBotOffer(Offer):
                 return
 
             if isinstance(nostr_offer_event.tags['fa'], str):
-                amount_value = nostr_offer_event.tags['fa']
+                fiat_amount_value = nostr_offer_event.tags['fa']
             else:
-                amount_value = f'{nostr_offer_event.tags['fa'][0]} - {nostr_offer_event.tags['fa'][1]}'
+                fiat_amount_value = f'{nostr_offer_event.tags['fa'][0]} - {nostr_offer_event.tags['fa'][1]}'
 
-            if sats := int(nostr_offer_event.tags['amt']):
-                price_eur = float(amount_value) / (sats / config.sats_per_btc)
+            if original_sat_amount := int(nostr_offer_event.tags['amt']) or None:
+                original_fiat_amount = float(fiat_amount_value)
+                # noinspection PyUnboundLocalVariable
+                price_eur = original_fiat_amount / (original_sat_amount / config.sats_per_btc)
                 premium = (price_eur / yadio_cache.btc_price - 1) * 100
             else:
+                original_fiat_amount = None
                 premium = float(nostr_offer_event.tags['premium'])
                 price_eur = (1 + premium / 100) * yadio_cache.btc_price
 
@@ -73,7 +91,7 @@ class LnP2pBotOffer(Offer):
             return Offer(
                 exchange=Exchange.LNP2PBOT,
                 id=nostr_offer_event.tags['d'],
-                amount=f'{amount_value} €',
+                fiat_amount=f'{fiat_amount_value} €',
                 price_eur=price_eur,
                 price_usd=price_eur * yadio_cache.eur_dolar_rate,
                 premium=premium,
@@ -82,7 +100,9 @@ class LnP2pBotOffer(Offer):
                 trades=int(trades),
                 rating=float(rating) / config.lnp2pbot_max_rating,
                 url=url,
-                description=description
+                description=description,
+                original_sat_amount=original_sat_amount,
+                original_fiat_amount=original_fiat_amount
             )
         except KeyError, ValueError:
             pass

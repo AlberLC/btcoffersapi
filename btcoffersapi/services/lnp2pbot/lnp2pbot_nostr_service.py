@@ -189,6 +189,23 @@ async def listen_new_offers(
         )
 
 
+async def refresh_offers(
+    lnp2pbot_old_offer_sync_task: Task,
+    yadio_cache: YadioCache,
+    offer_repository: OfferRepository
+) -> None:
+    if not lnp2pbot_old_offer_sync_task.done():
+        return
+
+    async with offer_repository.lock():
+        offers = await offer_repository.get_offers(exchanges=(Exchange.LNP2PBOT,))
+
+        for offer in offers:
+            offer.refresh_prices(yadio_cache)
+
+        await offer_repository.bulk_update(offers)
+
+
 async def sync_old_offers(
     yadio_cache: YadioCache,
     offer_repository: OfferRepository,

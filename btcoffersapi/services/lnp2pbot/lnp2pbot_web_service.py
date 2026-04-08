@@ -68,7 +68,7 @@ async def fetch_offers_from_web(eur_dolar_rate: float, btc_price: float) -> list
                             Offer(
                                 exchange=Exchange.LNP2PBOT,
                                 id=lines[-1].strip(':'),
-                                amount=lines[2],
+                                fiat_amount=lines[2],
                                 price_eur=price_eur,
                                 price_usd=price_eur * eur_dolar_rate,
                                 premium=premium,

@@ -22,9 +22,9 @@ async def fetch_offers_from_api(eur_dolar_rate: float, btc_price: float, session
             continue
 
         if offer_data['fiat_amount']:
-            amount_value = f'{float(offer_data['fiat_amount']):.2f}'
+            fiat_amount_value = f'{float(offer_data['fiat_amount']):.2f}'
         else:
-            amount_value = f'{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}'
+            fiat_amount_value = f'{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}'
 
         premium = float(offer_data['price_margin'])
         price_eur = btc_price + premium / 100 * btc_price
@@ -33,7 +33,7 @@ async def fetch_offers_from_api(eur_dolar_rate: float, btc_price: float, session
             Offer(
                 exchange=Exchange.LNP2PBOT,
                 id=offer_data['_id'],
-                amount=f'{amount_value} €',
+                fiat_amount=f'{fiat_amount_value} €',
                 price_eur=price_eur,
                 price_usd=price_eur * eur_dolar_rate,
                 premium=float(offer_data['price_margin']),

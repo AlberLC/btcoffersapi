@@ -56,15 +56,15 @@ async def fetch_offers(yadio_cache: YadioCache, session: aiohttp.ClientSession) 
         offer_id = offer_data['id']
 
         if offer_data['min_amount'] == offer_data['max_amount']:
-            amount_value = offer_data['min_amount']
+            fiat_amount_value = offer_data['min_amount']
         else:
-            amount_value = f'{offer_data['min_amount']} - {offer_data['max_amount']}'
+            fiat_amount_value = f'{offer_data['min_amount']} - {offer_data['max_amount']}'
 
         offers.append(
             Offer(
                 exchange=Exchange.HODLHODL,
                 id=offer_id,
-                amount=f'{amount_value} €',
+                fiat_amount=f'{fiat_amount_value} €',
                 price_eur=float(offer_data['price']),
                 price_usd=float(offer_data['price']) * yadio_cache.eur_dolar_rate,
                 premium=(float(offer_data['price']) / yadio_cache.btc_price - 1) * 100,
