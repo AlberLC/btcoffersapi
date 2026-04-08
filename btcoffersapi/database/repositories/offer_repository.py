@@ -109,26 +109,24 @@ class OfferRepository(Repository[Offer]):
         return await self.get(filter, sort_keys=('price_eur',), limit=limit)
 
     @asynccontextmanager
-    async def lock(self, should_lock: bool = True) -> AsyncIterator[None]:
+    async def lock(self) -> AsyncIterator[None]:
         async with self._lock:
-            if should_lock:
-                while await self._locks_collection.find_one(
-                    {'_id': 'offers_lock', 'until': {'$gte': datetime.datetime.now(datetime.UTC)}}
-                ):
-                    await asyncio.sleep(1)
+            while await self._locks_collection.find_one(
+                {'_id': 'offers_lock', 'until': {'$gte': datetime.datetime.now(datetime.UTC)}}
+            ):
+                await asyncio.sleep(1)
 
-                await self._locks_collection.update_one(
-                    {'_id': 'offers_lock'},
-                    {
-                        '$set': {
-                            'until': datetime.datetime.now(datetime.UTC) + config.database_lock_expiration
-                        }
-                    },
-                    upsert=True
-                )
+            await self._locks_collection.update_one(
+                {'_id': 'offers_lock'},
+                {
+                    '$set': {
+                        'until': datetime.datetime.now(datetime.UTC) + config.database_lock_expiration
+                    }
+                },
+                upsert=True
+            )
 
             try:
                 yield
             finally:
-                if should_lock:
-                    await self._locks_collection.delete_one({'_id': 'offers_lock'})
+                await self._locks_collection.delete_one({'_id': 'offers_lock'})
