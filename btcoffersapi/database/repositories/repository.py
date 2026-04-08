@@ -4,15 +4,25 @@ from typing import Any
 
 import pymongo.errors
 from bson import ObjectId
-from pydantic import BaseModel
+from pymongo import UpdateOne
 from pymongo.asynchronous.collection import AsyncCollection, ReturnDocument
 
+from api.schemas.bases import ObjectIdModel
 
-class Repository[T: BaseModel]:
+
+class Repository[T: ObjectIdModel]:
     def __init__(self, collection: AsyncCollection[T]) -> None:
         self._collection = collection
         # noinspection PyUnresolvedReferences
         self._T = typing.get_args(self.__orig_bases__[0])[0]
+
+    async def bulk_update(self, items: Sequence[T]) -> None:
+        if not items:
+            return
+
+        await self._collection.bulk_write(
+            [UpdateOne({'_id': item.mongo_id}, {'$set': item.model_dump(by_alias=True)}, upsert=True) for item in items]
+        )
 
     async def delete(self, filter: dict[str, Any]) -> None:
         await self._collection.delete_many(filter)
@@ -63,7 +73,7 @@ class Repository[T: BaseModel]:
 
     async def insert_one(self, item: T, limit: int | None = None) -> T:
         insert_result = await self._collection.insert_one(item.model_dump(by_alias=True))
-        item.id = insert_result.inserted_id
+        item.mongo_id = insert_result.inserted_id
 
         if limit is not None and await self._collection.count_documents({}) > limit:
             await self._collection.find_one_and_delete({}, sort=('date',))
@@ -85,7 +95,7 @@ class Repository[T: BaseModel]:
 
     async def update_one(self, item: T) -> T | None:
         if document := await self._collection.find_one_and_update(
-            {'_id': item.id},
+            {'_id': item.mongo_id},
             {'$set': item.model_dump(by_alias=True)},
             upsert=True,
             return_document=ReturnDocument.AFTER

@@ -1,9 +1,10 @@
 from typing import Annotated, Self
 
 import aiohttp
-from pydantic import BaseModel, ConfigDict, PlainValidator
+from pydantic import ConfigDict, PlainValidator
 
 import utils
+from api.schemas.bases import ObjectIdModel
 from api.schemas.nostr_events import NostrOfferEvent
 from config import config
 from enums import Exchange, PaymentMethod
@@ -11,7 +12,7 @@ from services import payment_method_service
 from services.yadio_cache_service import YadioCache
 
 
-class Offer(BaseModel):
+class Offer(ObjectIdModel):
     exchange: Exchange
     id: str
     amount: str
