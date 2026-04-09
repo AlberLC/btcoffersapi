@@ -7,10 +7,10 @@ from bson import ObjectId
 from pymongo import UpdateOne
 from pymongo.asynchronous.collection import AsyncCollection, ReturnDocument
 
-from api.schemas.bases import ObjectIdModel
+from api.schemas.bases import MongoModel
 
 
-class Repository[T: ObjectIdModel]:
+class Repository[T: MongoModel]:
     def __init__(self, collection: AsyncCollection[T]) -> None:
         self._collection = collection
         # noinspection PyUnresolvedReferences
