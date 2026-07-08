@@ -6,7 +6,7 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI
 
-from api.routers import offers
+from api.routers import offers_router, websockets_router
 from config import config
 from database import database_setup
 from workers import offer_fetcher
@@ -19,8 +19,9 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any]]:
     yield {'notification_tasks': {}}
 
 
-app.include_router(offers.router)
 app = FastAPI(lifespan=lifespan, root_path=config.api_root, root_path_in_servers=False)
+app.include_router(offers_router.router)
+app.include_router(websockets_router.router)
 
 if __name__ == '__main__':
     multiprocessing.Process(target=offer_fetcher.run, daemon=True).start()
