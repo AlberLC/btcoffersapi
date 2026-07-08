@@ -13,6 +13,7 @@ from enums import PaymentMethod
 class AppSettings(BaseSettings):
     api_host: str | None = None
     api_port: int | None = None
+    api_root: str = '/btcoffersapi'
 
     model_config = SettingsConfigDict(env_file=Path(__file__).parent.parent / '.env')
 

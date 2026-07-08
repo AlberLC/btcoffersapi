@@ -19,8 +19,8 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any]]:
     yield {'notification_tasks': {}}
 
 
-app = FastAPI(lifespan=lifespan, root_path='/btcoffersapi')
 app.include_router(offers.router)
+app = FastAPI(lifespan=lifespan, root_path=config.api_root, root_path_in_servers=False)
 
 if __name__ == '__main__':
     multiprocessing.Process(target=offer_fetcher.run, daemon=True).start()
