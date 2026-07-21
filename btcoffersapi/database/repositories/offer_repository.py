@@ -1,9 +1,12 @@
 import asyncio
 import datetime
 import re
-from collections.abc import AsyncIterator, Sequence
+import uuid
+from collections.abc import AsyncGenerator, Sequence
 from contextlib import asynccontextmanager
 from typing import Any
+
+import pymongo.errors
 
 from api.schemas.offers import Offer
 from config import config
@@ -15,7 +18,6 @@ from enums import Exchange, PaymentMethod
 class OfferRepository(Repository[Offer]):
     def __init__(self) -> None:
         super().__init__(database['offer'])
-        self._lock = asyncio.Lock()
         self._locks_collection = database['locks']
 
     @staticmethod
@@ -109,24 +111,24 @@ class OfferRepository(Repository[Offer]):
         return await self.get(filter, sort_keys=('price_eur',), limit=limit)
 
     @asynccontextmanager
-    async def lock(self) -> AsyncIterator[None]:
-        async with self._lock:
-            while await self._locks_collection.find_one(
-                {'_id': 'offers_lock', 'until': {'$gte': datetime.datetime.now(datetime.UTC)}}
-            ):
-                await asyncio.sleep(1)
+    async def lock(self) -> AsyncGenerator[None]:
+        owner_id = str(uuid.uuid7())
 
-            await self._locks_collection.update_one(
-                {'_id': 'offers_lock'},
-                {
-                    '$set': {
-                        'until': datetime.datetime.now(datetime.UTC) + config.database_lock_expiration
-                    }
-                },
-                upsert=True
-            )
+        while True:
+            now = datetime.datetime.now(datetime.UTC)
 
             try:
-                yield
-            finally:
-                await self._locks_collection.delete_one({'_id': 'offers_lock'})
+                await self._locks_collection.find_one_and_update(
+                    {'_id': 'offers_lock', 'until': {'$lt': now}},
+                    {'$set': {'owner_id': owner_id, 'until': now + config.database_lock_expiration}},
+                    upsert=True
+                )
+            except pymongo.errors.DuplicateKeyError:
+                await asyncio.sleep(1)
+            else:
+                break
+
+        try:
+            yield
+        finally:
+            await self._locks_collection.delete_one({'_id': 'offers_lock', 'owner_id': owner_id})
