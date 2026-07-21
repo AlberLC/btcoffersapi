@@ -72,8 +72,8 @@ class MongoSettings(AppSettings):
             {'name': 'price_eur_1', 'keys': [('price_eur', pymongo.ASCENDING)]}
         ]
     }
-    mongo_username: str | None = None
     mongo_password: str | None = None
+    mongo_username: str | None = None
 
 
 class RoboSatstSettings(AppSettings):
