@@ -1,7 +1,15 @@
 from typing import Annotated, Any
 
 from bson import ObjectId
-from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, SerializerFunctionWrapHandler, model_serializer
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PlainSerializer,
+    SerializationInfo,
+    SerializerFunctionWrapHandler,
+    model_serializer
+)
 
 
 class MongoModel[T](BaseModel):
@@ -9,13 +17,15 @@ class MongoModel[T](BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-
-class ObjectIdModel(MongoModel[Annotated[ObjectId, PlainSerializer(str, when_used='json')]]):
     @model_serializer(mode='wrap')
-    def serialize_model(self, handler: SerializerFunctionWrapHandler) -> dict[str, Any]:
+    def serialize_model(self, handler: SerializerFunctionWrapHandler, info: SerializationInfo) -> dict[str, Any]:
         data = handler(self)
 
-        if not data['_id']:
+        if not data['_id' if info.by_alias else 'mongo_id']:
             data.pop('_id')
 
         return data
+
+
+class ObjectIdModel(MongoModel[Annotated[ObjectId, PlainSerializer(str, when_used='json')]]):
+    pass
