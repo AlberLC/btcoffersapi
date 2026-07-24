@@ -19,7 +19,7 @@ class NostrEvent:
         self.tags: dict[str, Any] = {tag[0]: self._normalize_tag_values(tag[1:]) for tag in self.raw_tags}
 
     @staticmethod
-    def _normalize_tag_values(tag_values: Sequence) -> tuple:
+    def _normalize_tag_values(tag_values: Sequence) -> Any:
         if len(tag_values) == 1:
             tag_value = tag_values[0]
             return tag_value.lower() if isinstance(tag_value, str) else tag_value
