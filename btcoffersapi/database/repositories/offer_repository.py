@@ -18,6 +18,7 @@ from enums import Exchange, PaymentMethod
 class OfferRepository(Repository[Offer]):
     def __init__(self) -> None:
         super().__init__(database['offer'])
+        self._lock = asyncio.Lock()
         self._locks_collection = database['locks']
 
     @staticmethod
@@ -114,21 +115,22 @@ class OfferRepository(Repository[Offer]):
     async def lock(self) -> AsyncGenerator[None]:
         owner_id = str(uuid.uuid7())
 
-        while True:
-            now = datetime.datetime.now(datetime.UTC)
+        async with self._lock:
+            while True:
+                now = datetime.datetime.now(datetime.UTC)
+
+                try:
+                    await self._locks_collection.find_one_and_update(
+                        {'_id': 'offers_lock', 'until': {'$lt': now}},
+                        {'$set': {'owner_id': owner_id, 'until': now + config.database_lock_expiration}},
+                        upsert=True
+                    )
+                except pymongo.errors.DuplicateKeyError:
+                    await asyncio.sleep(1)
+                else:
+                    break
 
             try:
-                await self._locks_collection.find_one_and_update(
-                    {'_id': 'offers_lock', 'until': {'$lt': now}},
-                    {'$set': {'owner_id': owner_id, 'until': now + config.database_lock_expiration}},
-                    upsert=True
-                )
-            except pymongo.errors.DuplicateKeyError:
-                await asyncio.sleep(1)
-            else:
-                break
-
-        try:
-            yield
-        finally:
-            await self._locks_collection.delete_one({'_id': 'offers_lock', 'owner_id': owner_id})
+                yield
+            finally:
+                await self._locks_collection.delete_one({'_id': 'offers_lock', 'owner_id': owner_id})
