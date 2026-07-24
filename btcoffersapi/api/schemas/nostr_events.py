@@ -55,7 +55,7 @@ class NostrEvent:
 class NostrOfferEvent(NostrEvent):
     @property
     def is_valid(self) -> bool:
-        return (
+        return bool(
             super().is_valid
             and
             self.tags
