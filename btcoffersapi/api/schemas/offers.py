@@ -88,7 +88,7 @@ class LnP2pBotOffer(Offer):
             rating, _, trades = nostr_offer_event.tags['rating']
             url = nostr_offer_event.tags['source']
 
-            return Offer(
+            return cls(
                 exchange=Exchange.LNP2PBOT,
                 id=nostr_offer_event.tags['d'],
                 fiat_amount=f'{fiat_amount_value} €',
