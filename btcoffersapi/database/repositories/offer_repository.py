@@ -73,18 +73,18 @@ class OfferRepository(Repository[Offer]):
         ignore_authors: Sequence[str] = (),
         ignore_descriptions: Sequence[str] = ()
     ):
-        filter = self._build_filter(
-            max_price_eur,
-            max_price_usd,
-            max_premium,
-            payment_methods,
-            exchanges,
-            ignore_ids,
-            ignore_authors,
-            ignore_descriptions
+        await self.delete(
+            self._build_filter(
+                max_price_eur,
+                max_price_usd,
+                max_premium,
+                payment_methods,
+                exchanges,
+                ignore_ids,
+                ignore_authors,
+                ignore_descriptions
+            )
         )
-
-        await self.delete(filter)
 
     async def get_offers(
         self,
@@ -98,18 +98,47 @@ class OfferRepository(Repository[Offer]):
         ignore_descriptions: Sequence[str] = (),
         limit: int | None = None
     ) -> list[Offer]:
-        filter = self._build_filter(
-            max_price_eur,
-            max_price_usd,
-            max_premium,
-            payment_methods,
-            exchanges,
-            ignore_ids,
-            ignore_authors,
-            ignore_descriptions
-        )
+        return [
+            offer
+            async for offer in self.iter_offers(
+                max_price_eur,
+                max_price_usd,
+                max_premium,
+                payment_methods,
+                exchanges,
+                ignore_ids,
+                ignore_authors,
+                ignore_descriptions,
+                limit
+            )
+        ]
 
-        return await self.get(filter, sort_keys=('price_eur',), limit=limit)
+    def iter_offers(
+        self,
+        max_price_eur: float | None = None,
+        max_price_usd: float | None = None,
+        max_premium: float | None = None,
+        payment_methods: Sequence[PaymentMethod] = (),
+        exchanges: Sequence[Exchange] = (),
+        ignore_ids: Sequence[str] = (),
+        ignore_authors: Sequence[str] = (),
+        ignore_descriptions: Sequence[str] = (),
+        limit: int | None = None
+    ) -> AsyncGenerator[Offer]:
+        return self.iter(
+            self._build_filter(
+                max_price_eur,
+                max_price_usd,
+                max_premium,
+                payment_methods,
+                exchanges,
+                ignore_ids,
+                ignore_authors,
+                ignore_descriptions
+            ),
+            sort_keys=('price_eur',),
+            limit=limit
+        )
 
     @asynccontextmanager
     async def lock(self) -> AsyncGenerator[None]:

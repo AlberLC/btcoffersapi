@@ -166,10 +166,14 @@ async def clean_up_invalid_offers(
 ) -> None:
     await lnp2pbot_old_offer_sync_task
 
+    offer_ids_to_delete = []
+
     async with offer_repository.lock():
-        for offer in await offer_repository.get_offers(exchanges=(Exchange.LNP2PBOT,)):
+        async for offer in offer_repository.iter_offers(exchanges=(Exchange.LNP2PBOT,)):
             if not await offer.check_exists(session):
-                await offer_repository.delete_one({'id': offer.id})
+                offer_ids_to_delete.append(offer.id)
+
+        await offer_repository.delete({'id': {'$in': offer_ids_to_delete}})
 
 
 async def listen_new_offers(
@@ -197,11 +201,12 @@ async def refresh_offers(
     if not lnp2pbot_old_offer_sync_task.done():
         return
 
-    async with offer_repository.lock():
-        offers = await offer_repository.get_offers(exchanges=(Exchange.LNP2PBOT,))
+    offers = []
 
-        for offer in offers:
+    async with offer_repository.lock():
+        async for offer in offer_repository.iter_offers(exchanges=(Exchange.LNP2PBOT,)):
             offer.refresh_prices(yadio_cache)
+            offers.append(offer)
 
         await offer_repository.bulk_update(offers)
 
