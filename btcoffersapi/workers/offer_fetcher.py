@@ -52,6 +52,7 @@ async def run_offer_fetcher() -> Never:
 
                 async with offer_repository.lock():
                     await offer_repository.delete_offers(exchanges=(Exchange.HODLHODL, Exchange.ROBOSATS))
+                    # noinspection bad-argument-type
                     await offer_repository.insert(itertools.chain(hodlhodl_offers, robosats_offers))
                     await database['metadata'].update_one(
                         {'_id': 'offer'},

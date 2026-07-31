@@ -18,6 +18,15 @@ class NostrEvent:
         self.raw_tags: Sequence[Sequence[str]] = raw_event.get('tags', ())
         self.tags: dict[str, Any] = {tag[0]: self._normalize_tag_values(tag[1:]) for tag in self.raw_tags}
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, NostrEvent):
+            return NotImplemented
+
+        return self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash(self.id)
+
     @staticmethod
     def _normalize_tag_values(tag_values: Sequence) -> Any:
         if len(tag_values) == 1:

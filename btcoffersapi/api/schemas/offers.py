@@ -31,6 +31,15 @@ class Offer(ObjectIdModel):
 
     model_config = ConfigDict(use_enum_values=True)
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Offer):
+            return NotImplemented
+
+        return self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash(self.id)
+
     async def check_exists(self, session: aiohttp.ClientSession, delay: float = 0.5) -> bool:
         return self.id in html if self.url and (html := await utils.fetch_html(self.url, session, delay)) else False
 
@@ -45,6 +54,45 @@ class Offer(ObjectIdModel):
         else:
             self.price_eur = (1 + self.premium / 100) * yadio_cache.btc_price
             self.price_usd = self.price_eur * yadio_cache.eur_dolar_rate
+
+
+class HodlHodlOffer(Offer):
+    @classmethod
+    def from_data(cls, data: dict, yadio_cache: YadioCache) -> Self | None:
+        offer_payment_method_ids = {
+            payment_method_data['payment_method_id']
+            for payment_method_data in data['payment_method_instructions']
+        }
+        payment_methods = []
+
+        for payment_method, payment_method_ids in config.hodlhodl_payment_methods_ids.items():
+            if payment_method_ids & offer_payment_method_ids:
+                payment_methods.append(payment_method)
+
+        if not payment_methods:
+            return
+
+        offer_id = data['id']
+
+        if data['min_amount'] == data['max_amount']:
+            fiat_amount_value = data['min_amount']
+        else:
+            fiat_amount_value = f'{data['min_amount']} - {data['max_amount']}'
+
+        return cls(
+            exchange=Exchange.HODLHODL,
+            id=offer_id,
+            fiat_amount=f'{fiat_amount_value} €',
+            price_eur=float(data['price']),
+            price_usd=float(data['price']) * yadio_cache.eur_dolar_rate,
+            premium=(float(data['price']) / yadio_cache.btc_price - 1) * 100,
+            payment_methods=payment_methods,
+            author=data['trader']['login'],
+            trades=data['trader']['trades_count'],
+            rating=data['trader']['rating'],
+            url=f'{config.hodlhodl_offers_web_base_url}/{offer_id}',
+            description=data['description']
+        )
 
 
 class LnP2pBotOffer(Offer):

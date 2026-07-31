@@ -3,21 +3,20 @@ import asyncio
 import aiohttp
 from fastapi import status
 
-from api.schemas.offers import Offer
+from api.schemas.offers import HodlHodlOffer
 from config import config
-from enums import Exchange
 from services.yadio_cache_service import YadioCache
 
 
-async def fetch_offers(yadio_cache: YadioCache, session: aiohttp.ClientSession) -> list[Offer]:
-    offers_data = []
-
+async def fetch_offers(yadio_cache: YadioCache, session: aiohttp.ClientSession) -> set[HodlHodlOffer]:
     params = {
         'pagination[limit]': config.hodlhodl_pagination_size,
         'filters[side]': 'sell',
         'filters[currency_code]': 'EUR'
     }
     pagination_offset = 0
+    seen_offer_ids = set()
+    offers = set()
 
     while True:
         params['pagination[offset]'] = pagination_offset
@@ -30,51 +29,14 @@ async def fetch_offers(yadio_cache: YadioCache, session: aiohttp.ClientSession) 
                 break
 
         for offer_data in offers_data_part:
-            if offer_data['searchable']:
-                offers_data.append(offer_data)
+            if offer_data['searchable'] and offer_data['id'] not in seen_offer_ids:
+                seen_offer_ids.add(offer_data['id'])
+
+                if offer := HodlHodlOffer.from_data(offer_data, yadio_cache):
+                    offers.add(offer)
 
         pagination_offset += config.hodlhodl_pagination_size
 
         await asyncio.sleep(config.hodlhodl_pagination_sleep)
-
-    offers = []
-
-    for offer_data in offers_data:
-        offer_payment_method_ids = {
-            payment_method_data['payment_method_id']
-            for payment_method_data in offer_data['payment_method_instructions']
-        }
-        payment_methods = []
-
-        for payment_method, payment_method_ids in config.hodlhodl_payment_methods_ids.items():
-            if payment_method_ids & offer_payment_method_ids:
-                payment_methods.append(payment_method)
-
-        if not payment_methods:
-            continue
-
-        offer_id = offer_data['id']
-
-        if offer_data['min_amount'] == offer_data['max_amount']:
-            fiat_amount_value = offer_data['min_amount']
-        else:
-            fiat_amount_value = f'{offer_data['min_amount']} - {offer_data['max_amount']}'
-
-        offers.append(
-            Offer(
-                exchange=Exchange.HODLHODL,
-                id=offer_id,
-                fiat_amount=f'{fiat_amount_value} €',
-                price_eur=float(offer_data['price']),
-                price_usd=float(offer_data['price']) * yadio_cache.eur_dolar_rate,
-                premium=(float(offer_data['price']) / yadio_cache.btc_price - 1) * 100,
-                payment_methods=payment_methods,
-                author=offer_data['trader']['login'],
-                trades=offer_data['trader']['trades_count'],
-                rating=offer_data['trader']['rating'],
-                url=f'{config.hodlhodl_offers_web_base_url}/{offer_id}',
-                description=offer_data['description']
-            )
-        )
 
     return offers

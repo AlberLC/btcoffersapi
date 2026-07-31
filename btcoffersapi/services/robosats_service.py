@@ -28,15 +28,15 @@ async def _get_coordinators_urls(session: aiohttp.ClientSession) -> dict[str, st
     return {}
 
 
-async def fetch_offers(robosats_url: str, yadio_cache: YadioCache, session: aiohttp.ClientSession) -> list[Offer]:
+async def fetch_offers(robosats_url: str, yadio_cache: YadioCache, session: aiohttp.ClientSession) -> set[Offer]:
     if not (coordinators_urls := await _get_coordinators_urls(session)):
-        return []
+        return set()
 
     connector = aiohttp_socks.ProxyConnector.from_url(config.tor_proxy_url)
     async with aiohttp.ClientSession(connector=connector, headers={'Accept': 'application/json'}) as tor_session:
         params = {'currency': 2, 'type': 1}
 
-        offers = []
+        offers = set()
 
         for coordinator_name, coordinator_url in coordinators_urls.items():
             await asyncio.sleep(config.tor_request_sleep)
@@ -63,7 +63,7 @@ async def fetch_offers(robosats_url: str, yadio_cache: YadioCache, session: aioh
                 else:
                     fiat_amount_value = f'{float(offer_data['min_amount']):.2f} - {float(offer_data['max_amount']):.2f}'
 
-                offers.append(
+                offers.add(
                     Offer(
                         exchange=Exchange.ROBOSATS,
                         id=str(offer_id),

@@ -7,25 +7,28 @@ from collections.abc import AsyncGenerator
 import aiohttp
 
 from api.schemas.nostr_events import NostrOfferEvent
-from api.schemas.offers import LnP2pBotOffer, Offer
+from api.schemas.offers import LnP2pBotOffer
 from config import config
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange, NostrMessageType
 from services.yadio_cache_service import YadioCache
 
 
-async def _fetch_old_offers(yadio_cache: YadioCache, session: aiohttp.ClientSession) -> list[Offer]:
-    events = {}
+async def _fetch_old_offers(yadio_cache: YadioCache, session: aiohttp.ClientSession) -> set[LnP2pBotOffer]:
+    events: set[NostrOfferEvent] = set()
 
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(config.lnp2pbot_nostr_timeout)) as nostr_session:
         await asyncio.gather(
-            *(_merge_relay_events(realy_url, events, nostr_session) for realy_url in config.lnp2pbot_nostr_relay_urls)
+            *(
+                _merge_relay_events(realy_url, events, nostr_session)
+                for realy_url in config.lnp2pbot_nostr_relay_urls
+            )
         )
 
-    sorted_events = sorted(events.items(), key=lambda item: item[1].created_at)
+    sorted_events = sorted(events, key=lambda item: item.created_at)
     pending_events = {}
 
-    for event_id, event in sorted_events:
+    for event in sorted_events:
         offer_id = event.tags['d']
 
         if event.tags['s'] == 'pending':
@@ -33,11 +36,11 @@ async def _fetch_old_offers(yadio_cache: YadioCache, session: aiohttp.ClientSess
         elif offer_id in pending_events:
             del pending_events[offer_id]
 
-    offers = []
+    offers = set()
 
     for event in pending_events.values():
         if offer := await LnP2pBotOffer.from_nostr_offer_event(event, yadio_cache, session):
-            offers.append(offer)
+            offers.add(offer)
 
     return offers
 
@@ -122,11 +125,7 @@ async def _listen_relay_events(
             await asyncio.sleep(config.lnp2pbot_nostr_relay_reconnect_sleep)
 
 
-async def _merge_relay_events(
-    relay_url: str,
-    events: dict[str, NostrOfferEvent],
-    session: aiohttp.ClientSession
-) -> None:
+async def _merge_relay_events(relay_url: str, events: set[NostrOfferEvent], session: aiohttp.ClientSession) -> None:
     oldest_created_at: int | None = None
     previous_oldest_created_at: int | None = None
 
@@ -137,8 +136,8 @@ async def _merge_relay_events(
                     page_events_count = 0
 
                     async for event in _iter_relay_events(websocket, until=oldest_created_at):
-                        if event.is_valid and event.id not in events:
-                            events[event.id] = event
+                        if event.is_valid and event not in events:
+                            events.add(event)
 
                         if event.created_at and (not oldest_created_at or event.created_at < oldest_created_at):
                             oldest_created_at = event.created_at
