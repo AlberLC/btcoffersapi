@@ -52,9 +52,6 @@ class Repository[T: MongoModel]:
     ) -> list[T]:
         return [object_ async for object_ in self.iter(filter, sort_keys, limit)]
 
-    async def get_all(self, sort_keys: Sequence[str | tuple[str, int]] | None = None) -> list[T]:
-        return await self.get(sort_keys=sort_keys)
-
     async def get_by_id(self, id: str | ObjectId) -> T | None:
         return await self.get_one({'_id': id})
 
@@ -102,10 +99,6 @@ class Repository[T: MongoModel]:
     ) -> AsyncGenerator[T]:
         async for document in self._collection.find(filter, sort=sort_keys, limit=limit if limit else 0):
             yield self._T(**document)
-
-    async def iter_all(self, sort_keys: Sequence[str | tuple[str, int]] | None = None) -> AsyncGenerator[T]:
-        async for object_ in self.iter(sort_keys=sort_keys):
-            yield object_
 
     async def partial_update_one(
         self,
