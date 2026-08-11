@@ -10,7 +10,6 @@ from database.client import database
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange
 from services import hodlhodl_service, robosats_service
-from services.lnp2pbot import lnp2pbot_nostr_service
 from services.yadio_cache_service import YadioCache
 
 
@@ -21,31 +20,13 @@ async def run_offer_fetcher() -> Never:
         yadio_cache = YadioCache(session)
         await yadio_cache.refresh()
 
-        lnp2pbot_old_offer_sync_task = asyncio.create_task(
-            lnp2pbot_nostr_service.sync_old_offers(yadio_cache, offer_repository, session)
-        )
-        asyncio.create_task(
-            lnp2pbot_nostr_service.listen_new_offers(
-                lnp2pbot_old_offer_sync_task,
-                yadio_cache,
-                offer_repository,
-                session
-            )
-        )
-
         robosats_url = await robosats_service.fetch_robosats_url(session)
 
         while True:
             try:
                 await yadio_cache.refresh()
 
-                _, _, hodlhodl_offers, robosats_offers = await asyncio.gather(
-                    lnp2pbot_nostr_service.clean_up_invalid_offers(
-                        lnp2pbot_old_offer_sync_task,
-                        offer_repository,
-                        session
-                    ),
-                    lnp2pbot_nostr_service.refresh_offers(lnp2pbot_old_offer_sync_task, yadio_cache, offer_repository),
+                hodlhodl_offers, robosats_offers = await asyncio.gather(
                     hodlhodl_service.fetch_offers(yadio_cache, session),
                     robosats_service.fetch_offers(robosats_url, yadio_cache, session)
                 )
