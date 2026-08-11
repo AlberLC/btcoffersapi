@@ -24,6 +24,14 @@ class Repository[T: MongoModel]:
             [UpdateOne({'_id': item.mongo_id}, {'$set': item.model_dump(by_alias=True)}, upsert=True) for item in items]
         )
 
+    async def count(self, filter: dict[str, Any] | None = None, skip: int = 0, limit: int | None = None) -> int:
+        kwargs = {}
+
+        if limit is not None:
+            kwargs['limit'] = limit
+
+        return await self._collection.count_documents(filter or {}, skip=skip, **kwargs)
+
     async def delete(self, filter: dict[str, Any]) -> None:
         await self._collection.delete_many(filter)
 
@@ -38,7 +46,7 @@ class Repository[T: MongoModel]:
         max_documents: int,
         max_documents_sort_keys: Sequence[str | tuple[str, int]] | None = None
     ) -> None:
-        if (excess := await self._collection.count_documents({}) - max_documents) <= 0:
+        if (excess := await self.count() - max_documents) <= 0:
             return
 
         cursor = self._collection.find(projection={'_id': True}, sort=max_documents_sort_keys, limit=excess)
@@ -48,9 +56,10 @@ class Repository[T: MongoModel]:
         self,
         filter: dict[str, Any] | None = None,
         sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        skip: int = 0,
         limit: int | None = None
     ) -> list[T]:
-        return [object_ async for object_ in self.iter(filter, sort_keys, limit)]
+        return [object_ async for object_ in self.iter(filter, sort_keys, skip, limit)]
 
     async def get_by_id(self, id: str | ObjectId) -> T | None:
         return await self.get_one({'_id': id})
@@ -58,9 +67,10 @@ class Repository[T: MongoModel]:
     async def get_one(
         self,
         filter: dict[str, Any] | None = None,
-        sort_keys: Sequence[str | tuple[str, int]] | None = None
+        sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        skip: int = 0
     ) -> T | None:
-        if document := await self._collection.find_one(filter, sort=sort_keys):
+        if document := await self._collection.find_one(filter, sort=sort_keys, skip=skip):
             return self._T(**document)
 
     async def insert(
@@ -86,7 +96,7 @@ class Repository[T: MongoModel]:
         insert_result = await self._collection.insert_one(item.model_dump(by_alias=True))
         item.mongo_id = insert_result.inserted_id
 
-        if max_documents is not None and await self._collection.count_documents({}) > max_documents:
+        if max_documents is not None and await self.count() > max_documents:
             await self._collection.find_one_and_delete({}, sort=max_documents_sort_keys)
 
         return item
@@ -95,9 +105,15 @@ class Repository[T: MongoModel]:
         self,
         filter: dict[str, Any] | None = None,
         sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        skip: int = 0,
         limit: int | None = None
     ) -> AsyncGenerator[T]:
-        async for document in self._collection.find(filter, sort=sort_keys, limit=limit if limit else 0):
+        kwargs = {}
+
+        if limit is not None:
+            kwargs['limit'] = limit
+
+        async for document in self._collection.find(filter, sort=sort_keys, skip=skip, **kwargs):
             yield self._T(**document)
 
     async def partial_update_one(
