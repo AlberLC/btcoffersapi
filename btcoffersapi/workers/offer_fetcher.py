@@ -6,7 +6,7 @@ from typing import Never
 import aiohttp
 
 from config import config
-from database.client import database
+from database.database_client import database
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange
 from services import hodlhodl_service, robosats_service

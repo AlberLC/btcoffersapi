@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from api.schemas.dated_offers import DatedOffer, DatedOffers
-from database.client import database
+from database.database_client import database
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange, PaymentMethod
 

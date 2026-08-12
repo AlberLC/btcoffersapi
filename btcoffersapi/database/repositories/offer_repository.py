@@ -10,7 +10,7 @@ import pymongo.errors
 
 from api.schemas.offers import Offer
 from config import config
-from database.client import database
+from database.database_client import database
 from database.repositories.repository import Repository
 from enums import Exchange, PaymentMethod
 
