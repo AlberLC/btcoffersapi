@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import pymongo.errors
+from pymongo.asynchronous.client_session import AsyncClientSession
 
 from api.schemas.offers import Offer
 from config import config
@@ -16,8 +17,8 @@ from enums import Exchange, PaymentMethod
 
 
 class OfferRepository(Repository[Offer]):
-    def __init__(self) -> None:
-        super().__init__(database['offer'])
+    def __init__(self, session: AsyncClientSession | None = None) -> None:
+        super().__init__(database['offer'], session)
         self._lock = asyncio.Lock()
         self._locks_collection = database['locks']
 
