@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
+from api.dependencies.repository_dependencies import get_repository
 from api.schemas.dated_offers import DatedOffer, DatedOffers
 from api.schemas.offers_params import OffersParams
 from database.repositories.offer_repository import OfferRepository
@@ -13,7 +14,7 @@ router = APIRouter(prefix='/offers', tags=['offers'])
 @router.get('')
 async def get_offers(
     offers_params: Annotated[OffersParams, Query()],
-    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]
+    offer_repository: Annotated[OfferRepository, Depends(get_repository(OfferRepository))]
 ) -> DatedOffers:
     return await dated_offer_service.get_dated_offers(
         offer_repository,
@@ -30,5 +31,9 @@ async def get_offers(
 
 
 @router.get('/{id}')
-async def get_offer(id: str, offer_repository: Annotated[OfferRepository, Depends(OfferRepository)]) -> DatedOffer:
+async def get_offer(
+    id: str,
+    offer_repository: Annotated[OfferRepository,
+    Depends(get_repository(OfferRepository))]
+) -> DatedOffer:
     return await dated_offer_service.get_dated_offer(id, offer_repository)

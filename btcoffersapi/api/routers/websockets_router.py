@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 
+from api.dependencies.repository_dependencies import get_repository
 from database.repositories.offer_repository import OfferRepository
 from services import offer_notifier_service
 
@@ -11,7 +12,7 @@ router = APIRouter(prefix='/ws', tags=['ws'])
 
 @router.websocket('/offers/notifications')
 async def handle_offer_notification(
-    offer_repository: Annotated[OfferRepository, Depends(OfferRepository)],
+    offer_repository: Annotated[OfferRepository, Depends(get_repository(OfferRepository))],
     websocket: WebSocket
 ) -> None:
     await websocket.accept()
