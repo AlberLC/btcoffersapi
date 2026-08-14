@@ -1,31 +1,14 @@
-from typing import Annotated, Any
+from typing import Annotated
 
 from bson import ObjectId
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    PlainSerializer,
-    SerializationInfo,
-    SerializerFunctionWrapHandler,
-    model_serializer
-)
+from pydantic import BaseModel, ConfigDict, Field, PlainSerializer
 
 
 class MongoModel[T](BaseModel):
-    mongo_id: T | Any = Field(alias='_id', default=None)
+    mongo_id: T = Field(alias='_id')
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    @model_serializer(mode='wrap')
-    def serialize_model(self, handler: SerializerFunctionWrapHandler, info: SerializationInfo) -> dict[str, Any]:
-        data = handler(self)
 
-        if not data['_id' if info.by_alias else 'mongo_id']:
-            data.pop('_id')
-
-        return data
-
-
-class ObjectIdModel(MongoModel[Annotated[ObjectId, PlainSerializer(str, when_used='json')]]):
-    pass
+class ObjectIdModel(MongoModel[ObjectId]):
+    mongo_id: Annotated[ObjectId, PlainSerializer(str, when_used='json')] = Field(alias='_id', default_factory=ObjectId)

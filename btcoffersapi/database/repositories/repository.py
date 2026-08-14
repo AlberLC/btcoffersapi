@@ -134,16 +134,13 @@ class Repository[T: MongoModel]:
         max_documents: int | None = None,
         max_documents_sort_keys: Sequence[str | tuple[str, int]] | None = None,
         session: AsyncClientSession | None = None
-    ) -> T:
+    ) -> None:
         session = session or self._session
 
-        insert_result = await self._collection.insert_one(item.model_dump(by_alias=True), session=session)
-        item.mongo_id = insert_result.inserted_id
+        await self._collection.insert_one(item.model_dump(by_alias=True), session=session)
 
         if max_documents is not None and await self.count(session=session) > max_documents:
             await self._collection.find_one_and_delete({}, sort=max_documents_sort_keys, session=session)
-
-        return item
 
     async def iter(
         self,
