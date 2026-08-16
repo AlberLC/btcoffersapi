@@ -19,7 +19,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any]]:
     yield {'notification_tasks': {}}
 
 
-app = FastAPI(lifespan=lifespan, root_path=config.api_root, root_path_in_servers=False)
+app = FastAPI(lifespan=lifespan, root_path=config.api_root)
 app.include_router(offers_router.router)
 app.include_router(websockets_router.router)
 
