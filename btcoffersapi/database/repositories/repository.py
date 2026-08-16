@@ -176,6 +176,9 @@ class Repository[T: MongoModel]:
             # noinspection not-mapping,unbound-local-variable
             return self._T(**document)
 
+    async def update_by_id(self, item: T, upsert: bool = False, session: AsyncClientSession | None = None) -> T | None:
+        return await self.update_one(item, {'_id': item.mongo_id}, upsert, session)
+
     async def update_one(
         self,
         item: T,
@@ -184,14 +187,6 @@ class Repository[T: MongoModel]:
         session: AsyncClientSession | None = None
     ) -> T | None:
         return await self.partial_update_one(filter, {'$set': item.model_dump(by_alias=True)}, upsert, session)
-
-    async def update_one_by_id(
-        self,
-        item: T,
-        upsert: bool = False,
-        session: AsyncClientSession | None = None
-    ) -> T | None:
-        return await self.update_one(item, {'_id': item.mongo_id}, upsert, session)
 
     def with_session(self, session: AsyncClientSession | None = None) -> Self:
         repository = copy.copy(self)
