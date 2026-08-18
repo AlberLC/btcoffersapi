@@ -4,7 +4,6 @@ from collections.abc import AsyncGenerator, Iterable, Sequence
 from typing import Any, Self
 
 import pymongo.errors
-from bson import ObjectId
 from pymongo import UpdateOne
 from pymongo.asynchronous.client_session import AsyncClientSession
 from pymongo.asynchronous.collection import AsyncCollection, ReturnDocument
@@ -12,7 +11,7 @@ from pymongo.asynchronous.collection import AsyncCollection, ReturnDocument
 from api.schemas.bases import MongoModel
 
 
-class Repository[T: MongoModel]:
+class Repository[T: MongoModel, IdT]:
     def __init__(self, collection: AsyncCollection, session: AsyncClientSession | None = None) -> None:
         self._collection = collection
         self._session = session
@@ -53,7 +52,7 @@ class Repository[T: MongoModel]:
     async def delete(self, filter: dict[str, Any], session: AsyncClientSession | None = None) -> None:
         await self._collection.delete_many(filter, session=session or self._session)
 
-    async def delete_by_id(self, id: str | ObjectId, session: AsyncClientSession | None = None) -> None:
+    async def delete_by_id(self, id: IdT, session: AsyncClientSession | None = None) -> None:
         await self.delete_one({'_id': id}, session)
 
     async def delete_one(self, filter: dict[str, Any], session: AsyncClientSession | None = None) -> None:
@@ -91,7 +90,7 @@ class Repository[T: MongoModel]:
     ) -> list[T]:
         return [object_ async for object_ in self.iter(filter, sort_keys, skip, limit, session)]
 
-    async def get_by_id(self, id: str | ObjectId, session: AsyncClientSession | None = None) -> T | None:
+    async def get_by_id(self, id: IdT, session: AsyncClientSession | None = None) -> T | None:
         return await self.get_one({'_id': id}, session=session)
 
     async def get_one(
