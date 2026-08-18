@@ -3,8 +3,8 @@ import asyncio
 import aiohttp
 from fastapi import status
 
-from api.schemas.offers import HodlHodlOffer
 from config import config
+from models.offers import HodlHodlOffer
 from services.yadio_cache_service import YadioCache
 
 

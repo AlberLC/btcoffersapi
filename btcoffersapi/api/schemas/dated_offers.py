@@ -2,7 +2,7 @@ import datetime
 
 from pydantic import BaseModel
 
-from api.schemas.offers import Offer
+from models.offers import Offer
 
 
 class DatedOffer(BaseModel):

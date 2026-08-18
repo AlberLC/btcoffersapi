@@ -8,7 +8,7 @@ from pymongo import UpdateOne
 from pymongo.asynchronous.client_session import AsyncClientSession
 from pymongo.asynchronous.collection import AsyncCollection, ReturnDocument
 
-from api.schemas.bases import MongoModel
+from models.bases import MongoModel
 
 
 class Repository[T: MongoModel, IdT]:

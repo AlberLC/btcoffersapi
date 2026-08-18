@@ -10,11 +10,11 @@ import pymongo.errors
 from bson import ObjectId
 from pymongo.asynchronous.client_session import AsyncClientSession
 
-from api.schemas.offers import Offer
 from config import config
 from database.database_client import database
 from database.repositories.repository import Repository
 from enums import Exchange, PaymentMethod
+from models.offers import Offer
 
 
 class OfferRepository(Repository[Offer, ObjectId]):

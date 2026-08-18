@@ -4,10 +4,10 @@ import aiohttp
 from pydantic import ConfigDict, PlainValidator
 
 import utils
-from api.schemas.bases import ObjectIdModel
-from api.schemas.nostr_events import NostrOfferEvent
 from config import config
 from enums import Exchange, PaymentMethod
+from models.bases import ObjectIdModel
+from models.nostr_events import NostrOfferEvent
 from services import payment_method_service
 from services.yadio_cache_service import YadioCache
 

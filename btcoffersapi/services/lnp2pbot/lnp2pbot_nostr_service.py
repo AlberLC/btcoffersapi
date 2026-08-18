@@ -6,11 +6,11 @@ from collections.abc import AsyncGenerator
 
 import aiohttp
 
-from api.schemas.nostr_events import NostrOfferEvent
-from api.schemas.offers import LnP2pBotOffer
 from config import config
 from database.repositories.offer_repository import OfferRepository
 from enums import Exchange, NostrMessageType
+from models.nostr_events import NostrOfferEvent
+from models.offers import LnP2pBotOffer
 from services.yadio_cache_service import YadioCache
 
 
