@@ -61,7 +61,7 @@ class Repository[T: MongoModel, IdT]:
     async def enforce_max_documents(
         self,
         max_documents: int,
-        max_documents_sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        max_documents_sort: Sequence[str | tuple[str, int]] | None = None,
         session: AsyncClientSession | None = None
     ) -> None:
         if (excess := await self.count(session=session) - max_documents) <= 0:
@@ -69,12 +69,7 @@ class Repository[T: MongoModel, IdT]:
 
         session = session or self._session
 
-        cursor = self._collection.find(
-            projection={'_id': True},
-            sort=max_documents_sort_keys,
-            limit=excess,
-            session=session
-        )
+        cursor = self._collection.find(projection={'_id': True}, sort=max_documents_sort, limit=excess, session=session)
         await self._collection.delete_many(
             {'_id': {'$in': [document['_id'] async for document in cursor]}},
             session=session
@@ -83,12 +78,12 @@ class Repository[T: MongoModel, IdT]:
     async def get(
         self,
         filter: dict[str, Any] | None = None,
-        sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        sort: Sequence[str | tuple[str, int]] | None = None,
         skip: int = 0,
         limit: int | None = None,
         session: AsyncClientSession | None = None
     ) -> list[T]:
-        return [object_ async for object_ in self.iter(filter, sort_keys, skip, limit, session)]
+        return [object_ async for object_ in self.iter(filter, sort, skip, limit, session)]
 
     async def get_by_id(self, id: IdT, session: AsyncClientSession | None = None) -> T | None:
         return await self.get_one({'_id': id}, session=session)
@@ -96,16 +91,11 @@ class Repository[T: MongoModel, IdT]:
     async def get_one(
         self,
         filter: dict[str, Any] | None = None,
-        sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        sort: Sequence[str | tuple[str, int]] | None = None,
         skip: int = 0,
         session: AsyncClientSession | None = None
     ) -> T | None:
-        if document := await self._collection.find_one(
-            filter,
-            sort=sort_keys,
-            skip=skip,
-            session=session or self._session
-        ):
+        if document := await self._collection.find_one(filter, sort=sort, skip=skip, session=session or self._session):
             # noinspection not-mapping,unbound-local-variable
             return self._T(**document)
 
@@ -113,7 +103,7 @@ class Repository[T: MongoModel, IdT]:
         self,
         items: Iterable[T],
         max_documents: int | None = None,
-        max_documents_sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        max_documents_sort: Sequence[str | tuple[str, int]] | None = None,
         session: AsyncClientSession | None = None
     ) -> None:
         try:
@@ -125,13 +115,13 @@ class Repository[T: MongoModel, IdT]:
             pass
 
         if max_documents is not None:
-            await self.enforce_max_documents(max_documents, max_documents_sort_keys, session)
+            await self.enforce_max_documents(max_documents, max_documents_sort, session)
 
     async def insert_one(
         self,
         item: T,
         max_documents: int | None = None,
-        max_documents_sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        max_documents_sort: Sequence[str | tuple[str, int]] | None = None,
         session: AsyncClientSession | None = None
     ) -> None:
         session = session or self._session
@@ -139,12 +129,12 @@ class Repository[T: MongoModel, IdT]:
         await self._collection.insert_one(item.model_dump(by_alias=True), session=session)
 
         if max_documents is not None and await self.count(session=session) > max_documents:
-            await self._collection.find_one_and_delete({}, sort=max_documents_sort_keys, session=session)
+            await self._collection.find_one_and_delete({}, sort=max_documents_sort, session=session)
 
     async def iter(
         self,
         filter: dict[str, Any] | None = None,
-        sort_keys: Sequence[str | tuple[str, int]] | None = None,
+        sort: Sequence[str | tuple[str, int]] | None = None,
         skip: int = 0,
         limit: int | None = None,
         session: AsyncClientSession | None = None
@@ -154,7 +144,7 @@ class Repository[T: MongoModel, IdT]:
         if limit is not None:
             kwargs['limit'] = limit
 
-        cursor = self._collection.find(filter, sort=sort_keys, skip=skip, session=session or self._session, **kwargs)
+        cursor = self._collection.find(filter, sort=sort, skip=skip, session=session or self._session, **kwargs)
         async for document in cursor:
             yield self._T(**document)
 

@@ -138,7 +138,7 @@ class OfferRepository(Repository[Offer, ObjectId]):
                 ignore_authors,
                 ignore_descriptions
             ),
-            sort_keys=('price_eur',),
+            sort=('price_eur',),
             limit=limit
         )
 
