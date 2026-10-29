@@ -11,7 +11,7 @@ from bson import ObjectId
 from pymongo.asynchronous.client_session import AsyncClientSession
 
 from config import config
-from database.database_client import database
+from database import database_client
 from database.repositories.repository import Repository
 from enums import Exchange, PaymentMethod
 from models.offers import Offer
@@ -19,9 +19,9 @@ from models.offers import Offer
 
 class OfferRepository(Repository[Offer, ObjectId]):
     def __init__(self, session: AsyncClientSession | None = None) -> None:
-        super().__init__(database['offer'], session)
+        super().__init__(database_client.get_collection('offer'), session)
         self._lock = asyncio.Lock()
-        self._locks_collection = database['locks']
+        self._locks_collection = database_client.get_collection('locks')
 
     @staticmethod
     def _build_filter(

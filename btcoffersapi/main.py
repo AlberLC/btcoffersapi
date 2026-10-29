@@ -1,3 +1,4 @@
+import asyncio
 import multiprocessing
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -14,9 +15,8 @@ from workers import offer_fetcher
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[dict[str, Any]]:
-    await database_setup.initialize_database()
-
-    yield {'notification_tasks': {}}
+    async with database_setup.initialize_database():
+        yield {'notification_tasks': {}}
 
 
 app = FastAPI(lifespan=lifespan, root_path=config.api_root)
@@ -24,5 +24,6 @@ app.include_router(offers_router.router)
 app.include_router(websockets_router.router)
 
 if __name__ == '__main__':
+    asyncio.run(database_setup.ensure_schema())
     multiprocessing.Process(target=offer_fetcher.run, daemon=True).start()
     uvicorn.run('main:app', host=config.api_host, port=config.api_port)
