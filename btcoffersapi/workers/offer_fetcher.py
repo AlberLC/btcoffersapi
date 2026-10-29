@@ -48,5 +48,4 @@ async def run_offer_fetcher() -> Never:
 
 
 def run() -> Never:
-    # noinspection PyUnreachableCode
     asyncio.run(run_offer_fetcher())
